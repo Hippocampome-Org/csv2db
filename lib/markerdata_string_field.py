@@ -1,0 +1,334 @@
+# markerdata_string_field.py
+
+import re
+from ..models import ArticleEvidenceRel, ArticleSynonymRel, Evidence, EvidenceEvidenceRel, EvidenceFragmentRel, EvidenceMarkerdataRel, EvidencePropertyTypeRel, Fragment, Markerdata, Property, SynonymTypeRel
+
+cols = ('1','2','3','4','5','6','7','8','9','10',
+        '11','12','13','14','15','16','17','18','19','20',
+        '21','22','23','24','25','26','27','28','29','30',
+        '31','32','33','34','35','36','37','38','39','40',
+        '41','42','43','44','45','46','47','48','49','50',
+        '51','52','53','54','55','56','57','58','59','60',
+        '61','62','63','64','65','66','67','68','69','70',
+        '71','72','73','74','75','76','77','78','79','80',
+        '81','82','83','84','85','86','87','88','89','90',
+        '91','92','93','94','95','96')
+
+markers = ('CB', 'CR', 'PV', 'CB1', 'Mus2R', 'Sub P Rec', '5HT-3', 'Gaba-a-alpha', 'mGluR1a', 'vGluT3',
+           'CCK', 'ENK', 'NPY', 'SOM', 'VIP', 'NG', 'alpha-actinin-2', 'CoupTF II', 'nNOS', 'RLN',
+           'ChAT', 'DYN', 'EAAT3', 'GlyT2', 'mGluR7a', 'mGluR8a', 'MOR', 'NKB', 'PPTA', 'PPTB',
+           'vAChT', 'VIAAT', 'vGluT2', 'AChE', 'GAT-1', 'CGRP', 'mGluR2/3', 'Kv3.1', 'mGluR5', 'Prox1',
+           'GABAa \\delta', 'VILIP', 'Cx36', 'Mus1R', 'Mus3R', 'Mus4R', 'ErbB4', 'CaM', 'Y1', 'Man1a',
+           'Bok', 'PCP4', 'AMIGO2', 'Sub P', 'AMPAR 2/3', 'Disc1', 'PSA-NCAM', 'BDNF', 'p-CREB', 'SCIP',
+           'Math-2', 'Neuropilin2', 'Id-2', 'vGAT', 'SATB1', 'NECAB1', 'Chrna2', 'Y2', 'mGluR1', 'GluR2/3',
+           'CRF', 'GABA-B1', 'Caln', 'vGlut1', 'mGluR2', 'mGluR3', 'mGluR4', 'SPO', 'GABAa\\alpha 2', 'GABAa\\alpha 3',
+           'GABAa\\alpha 4', 'GABAa\\alpha 5', 'GABAa\\alpha 6', 'GABAa\\beta 1', 'GABAa\\beta 2', 'GABAa\\beta 3', 'GABAa\\gamma 1', 'GABAa\\gamma 2', 'mGluR5a', 'SATB2',
+           'Ctip2', 'GluA2', 'GluA1', 'GluA3', 'GluA4', 'GAT-3')
+
+"""
+@marker_code = {
+  :first =>  {
+    '0' =>  ['unknown'],
+    '1' =>  ['positive'],
+    '2' =>  ['negative'],
+    '3' =>  ['weak_positive'],
+    '4' =>  ['positive', 'negative'],
+    '5' =>  ['positive', 'negative']
+  },
+  :second =>  {
+    '0' =>  ['immunohistochemistry'],
+    '1' =>  ['mRNA'],
+    '2' =>  ['immunohistochemistry', 'mRNA'],
+    '3' =>  ['unknown'],
+    '4' =>  ['promoter_expression_construct'],
+    '?' =>  ['unknown'],
+  },
+  :third =>  {
+    '0' =>  ['mouse'],
+    '1' =>  ['rat'],
+    '2' =>  ['mouse', 'rat'],
+    '3' =>  ['unspecified_rodent'],
+    '?' =>  ['unknown'],
+  }
+}
+"""
+
+class MarkerdataStringField:
+
+    def parse_and_save(row):
+        c = 0
+        for col in cols:
+            marker = markers[c]
+            c = c + 1
+            string_field = row[col]
+
+            # tag and conflict note determination
+            tag           = None
+            conflict_note = None
+            if '{' in string_field:
+                string_field_brace_split = string_field.split('{')
+                tag = string_field_brace_split[1][0]
+                if   tag == '1':
+                    conflict_note = 'subtypes'
+                elif tag == '3':
+                    conflict_note = 'species differences'
+
+            # begin parsing field string
+            if '"' in string_field:
+                q1 = string_field.find('"')
+                string_field_sub = string_field[q1+1:] + '; '
+                tokens = string_field_sub.split(';')
+                for token in tokens:
+                    if '.' in token:
+                        token = token.strip()
+                        Evidence_id = None
+
+                        # expression
+                        if   token[0] == '0':
+                            Evidence_id = 1
+                            expression  = '["unknown"]'
+                            object      =   'unknown'
+                        elif token[0] == '1':
+                            expression  = '["positive"]'
+                            object      =   'positive'
+                        elif token[0] == '2':
+                            expression  = '["negative"]'
+                            object      =   'negative'
+                        elif token[0] == '3':
+                            expression  = '["weak_positive"]'
+                            object      =   'weak_positive'
+                        elif token[0] == '4':
+                            expression  = '["positive", "negative"]'
+                            object      =   'positive_negative'
+                        elif token[0] == '5':
+                            expression  = '["positive", "negative"]'
+                            object      =   'positive_negative'
+                        else:
+                            if tag is None:
+                                continue
+
+                        # tag {} expression override
+                        if   tag == '}':
+                            Evidence_id = 1
+                            expression  = '["unknown"]'
+                            object      =   'unknown'
+                        #elif tag == 'p':
+                        #    expression  = '["positive"]'
+                        #    object      =   'positive'
+                        #elif tag == 'n':
+                        #    expression  = '["negative"]'
+                        #    object      =   'negative'
+                        #elif tag == '1': # subtypes
+                        #    expression  = '["positive", "negative"]'
+                        #    object      =   'positive_negative'
+                        #elif tag == '2': # conflicting data
+                        #    expression  = '["positive", "negative"]'
+                        #    object      =   'positive_negative'
+                        #elif tag == '3': # species/protocol differences
+                        #    expression  = '["positive", "negative"]'
+                        #    object      =   'positive_negative'
+                        else:
+                            pass
+
+                        # protocol
+                        if   token[1] == '0':
+                            protocol   = '["immunohistochemistry"]'
+                        elif token[1] == '1':
+                            protocol   = '["mRNA"]'
+                        elif token[1] == '2':
+                            protocol   = '["immunohistochemistry", "mRNA"]'
+                        elif token[1] == '3':
+                            protocol   = '["unknown"]'
+                        elif token[1] == '4':
+                            protocol   = '["promoter_expression_construct"]'
+                        else:
+                            continue
+
+                        # animal
+                        if   token[2] == '0':
+                            animal     = '["mouse"]'
+                        elif token[2] == '1':
+                            animal     = '["rat"]'
+                        elif token[2] == '2':
+                            animal     = '["mouse", "rat"]'
+                        elif token[2] == '3':
+                            animal     = '["unspecified_rodent"]'
+                        else:
+                            continue
+                        
+                        # check for existance of Markerdata record, then save if new
+                        try:
+                            row_object = Markerdata.objects.get(expression=expression,animal=animal,protocol=protocol)
+                        except Markerdata.DoesNotExist:
+                            row_object = Markerdata(expression=expression,animal=animal,protocol=protocol)
+                            if expression != '["unknown"]':
+                                row_object.save()
+                        
+                        # check for existance of Property record, then save if new
+                        subject   = marker
+                        predicate = 'has expression'
+                        if object == 'positive_negative':
+                            object = 'positive'
+                            try:
+                                row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                            except Property.DoesNotExist:
+                                row_object = Property(subject=subject,predicate=predicate,object=object)
+                                row_object.save()
+                            object = 'negative'
+                            try:
+                                row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                            except Property.DoesNotExist:
+                                row_object = Property(subject=subject,predicate=predicate,object=object)
+                                row_object.save()
+                            object = 'positive_negative'
+                        else:
+                            try:
+                                row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                            except Property.DoesNotExist:
+                                row_object = Property(subject=subject,predicate=predicate,object=object)
+                                row_object.save()
+
+                        # populate EvidencePropertyTypeRel and related tables ArticleSynonymRel, EvidenceEvidenceRel, Evidence, EvidenceMarkerdataRel
+                        if Evidence_id is None:
+                            try:
+                                original_id_string = token[4:10]
+                                original_id = int(token[4:10]) # convert the original_id protion of the token (i.e. substring after the dot) to int
+                                try:
+                                    row_object  = Fragment.objects.filter(original_id=original_id).first()
+                                    Fragment_id = row_object.id
+                                    try:
+                                        row_object   = EvidenceFragmentRel.objects.filter(Fragment_id=Fragment_id).first()
+                                        Evidence2_id = row_object.Evidence_id
+                                        Evidence1_id = Evidence.objects.count() + 1
+                                        Evidence_id  = Evidence1_id
+                                        try:
+                                            row_object = EvidenceEvidenceRel.objects.get(Evidence1_id=Evidence1_id,Evidence2_id=Evidence2_id)
+                                        except EvidenceEvidenceRel.DoesNotExist:
+                                            row_object = EvidenceEvidenceRel(Evidence1_id=Evidence1_id,Evidence2_id=Evidence2_id,type='interpretation')
+                                            row_object.save()
+                                            row_object = Evidence()
+                                            row_object.save()
+                                            try:
+                                                row_object = Markerdata.objects.get(expression=expression,animal=animal,protocol=protocol)
+                                                Markerdata_id = row_object.id
+                                                try:
+                                                    row_object = EvidenceMarkerdataRel.objects.get(Evidence_id=Evidence_id,Markerdata_id=Markerdata_id)
+                                                except EvidenceMarkerdataRel.DoesNotExist:
+                                                    row_object = EvidenceMarkerdataRel(Evidence_id=Evidence_id,Markerdata_id=Markerdata_id)
+                                                    row_object.save()
+                                            except Markerdata.DoesNotExist:
+                                                Markerdata_id = None
+                                    except EvidenceFragmentRel.DoesNotExist:
+                                        Evidence_id = None
+                                except Fragment.DoesNotExist:
+                                    Fragment_id = None
+                            except Exception:
+                                pass
+                        #end if Evidence_id is None:
+                        Type_id = row['Type_id']
+                        Type_id = re.sub(r'-', r'', Type_id)
+                        Type_id = int(Type_id)
+                        unvetted = 0
+
+                        # add two EvidencePropertyTypeRel records if object is 'positive_negative'
+                        if object == 'positive_negative':
+                            object = 'positive'
+                            try:
+                                row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                                Property_id = row_object.id
+                                try:
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted)
+                                except EvidencePropertyTypeRel.DoesNotExist:
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted)
+                                    row_object.save()
+                                    if Evidence_id != 1:
+                                        # add ArticleSynonymRel record if unique
+                                        try:
+                                            row_object = ArticleEvidenceRel.objects.get(Evidence_id=Evidence2_id)
+                                            Article_id = row_object.Article_id
+                                            try:
+                                                synonym_row_objects = SynonymTypeRel.objects.filter(Type_id=Type_id)
+                                                for synonym_row_object in synonym_row_objects:
+                                                    Synonym_id = synonym_row_object.Synonym_id
+                                                    try:
+                                                        row_object = ArticleSynonymRel.objects.get(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                    except ArticleSynonymRel.DoesNotExist:
+                                                        row_object = ArticleSynonymRel(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                        row_object.save()
+                                            except SynonymTypeRel.DoesNotExist:
+                                                Synonym_id = None
+                                        except ArticleEvidenceRel.DoesNotExist:
+                                            Article_id = None
+                                        #end add ArticleSynonymRel record if unique
+                                    #end if Evidence_id != 1:
+                            except Property.DoesNotExist:
+                                Property_id = None
+                                Type_id = None
+                            object = 'negative'
+                            try:
+                                row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                                Property_id = row_object.id
+                                try:
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted)
+                                except EvidencePropertyTypeRel.DoesNotExist:
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted)
+                                    row_object.save()
+                                    if Evidence_id != 1:
+                                        # add ArticleSynonymRel record if unique
+                                        try:
+                                            row_object = ArticleEvidenceRel.objects.get(Evidence_id=Evidence2_id)
+                                            Article_id = row_object.Article_id
+                                            try:
+                                                synonym_row_objects = SynonymTypeRel.objects.filter(Type_id=Type_id)
+                                                for synonym_row_object in synonym_row_objects:
+                                                    Synonym_id = synonym_row_object.Synonym_id
+                                                    try:
+                                                        row_object = ArticleSynonymRel.objects.get(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                    except ArticleSynonymRel.DoesNotExist:
+                                                        row_object = ArticleSynonymRel(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                        row_object.save()
+                                            except SynonymTypeRel.DoesNotExist:
+                                                Synonym_id = None
+                                        except ArticleEvidenceRel.DoesNotExist:
+                                            Article_id = None
+                                        #end add ArticleSynonymRel record if unique
+                                    #end if Evidence_id != 1:
+                            except Property.DoesNotExist:
+                                Property_id = None
+                                Type_id = None
+                            object = 'positive_negative'
+                        else:
+                            try:
+                                row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                                Property_id = row_object.id
+                                try:
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted)
+                                except EvidencePropertyTypeRel.DoesNotExist:
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted)
+                                    row_object.save()
+                                    if Evidence_id != 1:
+                                        # add ArticleSynonymRel record if unique
+                                        try:
+                                            row_object = ArticleEvidenceRel.objects.get(Evidence_id=Evidence2_id)
+                                            Article_id = row_object.Article_id
+                                            try:
+                                                synonym_row_objects = SynonymTypeRel.objects.filter(Type_id=Type_id)
+                                                for synonym_row_object in synonym_row_objects:
+                                                    Synonym_id = synonym_row_object.Synonym_id
+                                                    try:
+                                                        row_object = ArticleSynonymRel.objects.get(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                    except ArticleSynonymRel.DoesNotExist:
+                                                        row_object = ArticleSynonymRel(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                        row_object.save()
+                                            except SynonymTypeRel.DoesNotExist:
+                                                Synonym_id = None
+                                        except ArticleEvidenceRel.DoesNotExist:
+                                            Article_id = None
+                                        #end add ArticleSynonymRel record if unique
+                                    #end if Evidence_id != 1:
+                            except Property.DoesNotExist:
+                                Property_id = None
+                                Type_id = None
+
+                    #end if '.' in token:
+                #end for token in tokens:
