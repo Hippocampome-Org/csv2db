@@ -71,8 +71,9 @@ class MorphdataPropertyRecords:
 class MorphdataStringField:
     def parse_and_save(row):
         try:
-            if row['Class Status'] == 'N':
+            if (row['Class Status'] == 'N' or row['Class Status'] == 'M') and row['Neurites \ Layer ID->'] != 'somata':
                 Type_id = int(row['unique ID'])
+                unvetted = 0
 
                 # process soma location information
                 soma_location = row['Soma location'].split('(',1)
@@ -100,9 +101,9 @@ class MorphdataStringField:
                                 Evidence_id = row_object.Evidence_id
                                 # check for EvidencePropertyTypeRel match and add if new
                                 try:
-                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id)
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted)
                                 except EvidencePropertyTypeRel.DoesNotExist:
-                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id)
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted)
                                     row_object.save()
                                     # add ArticleSynonymRel record if unique
                                     try:
@@ -158,9 +159,9 @@ class MorphdataStringField:
                                     Evidence_id = row_object.Evidence_id
                                     # check for EvidencePropertyTypeRel match and add if new
                                     try:
-                                        row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id)
+                                        row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted)
                                     except EvidencePropertyTypeRel.DoesNotExist:
-                                        row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id)
+                                        row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted)
                                         row_object.save()
                                         # add ArticleSynonymRel record if unique
                                         try:
@@ -203,7 +204,7 @@ class MorphdataStringField:
                         row_object  = Property.objects.get(subject=subject,predicate=predicate,object=object)
                         Property_id = row_object.id
                         # identify Evidence_id
-                        if row[cols[col]] != '':
+                        if row[cols[col]] != '' and row[cols[col]] != '"-1"':
                             original_id_comma_delimited_set = row[cols[col]]
                             original_id_comma_delimited_set = re.sub(r'"', '', original_id_comma_delimited_set)
                             original_id_comma_delimited_set = re.sub(r'-', '', original_id_comma_delimited_set)
@@ -221,9 +222,9 @@ class MorphdataStringField:
                                         Evidence_id = row_object.Evidence_id
                                         # check for EvidencePropertyTypeRel match and add if new
                                         try:
-                                            row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id)
+                                            row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted)
                                         except EvidencePropertyTypeRel.DoesNotExist:
-                                            row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id)
+                                            row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted)
                                             row_object.save()
                                             # add ArticleSynonymRel record if unique
                                             try:
@@ -254,6 +255,6 @@ class MorphdataStringField:
                     col = col + 1
                 #end for parcel in parcels:
 
-            #end if row['Class Status'] == 'N':
+            #end if (row['Class Status'] == 'N' or row['Class Status'] == 'M') and row['Neurites \ Layer ID->'] != 'somata':
         except Exception:
             pass
