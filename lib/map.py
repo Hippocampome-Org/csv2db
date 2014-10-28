@@ -580,7 +580,8 @@ class Map:
             if status == 'active':
                 id = int(row['id'])
                 try:
-                    position = int(row['position'])
+                    position             = int(row['position'])
+                    position_HC_standard = int(row['position_HC_standard'])
                 except ValueError:
                     position = None
                 subregion = row['subregion']
@@ -596,14 +597,16 @@ class Map:
                 if len(short_name) == 0:
                     short_name = None
 
+                # overide for dev site
                 if dev == 'true': 
-                    short_name = intermediate_name # overide for dev site
+                    position   = position_HC_standard
+                    short_name = intermediate_name
 
                 excit_inhib = row['excit_inhib']
                 notes = None
                 try:
                     row_object = Type.objects.get(id=id)
-                    row_object = Type.objects.filter(id=id).update(nickname=short_name)
+                    row_object = Type.objects.filter(id=id).update(position=position,nickname=short_name)
                 except Type.DoesNotExist:
                     row_object = Type(
                         id          = id,
