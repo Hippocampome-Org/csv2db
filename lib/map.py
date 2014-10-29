@@ -258,34 +258,39 @@ class Map:
         for row in self.rows:
             try:
                 cell_identifier = int(row['Cell Identifier'])
+                try:
+                    quote_reference_id = int(row['Quote reference id'])
+                except ValueError:
+                    quote_reference_id = None
+                name_of_file_containing_figure = row['Name of file containing figure']
+                if len(name_of_file_containing_figure) == 0:
+                    name_of_file_containing_figure = None
+                figure_table = row['Figure/Table']
+                if is_attachment_morph_csv == 1:
+                    if figure_table == 'figure':
+                        figure_table = 'morph_figure'
+                    elif figure_table == 'table':
+                        figure_table = 'morph_table'
+                row_object = Attachment(
+                    cell_id     = cell_identifier,
+                    original_id = quote_reference_id,
+                    name        = name_of_file_containing_figure,
+                    type        = figure_table
+                )
+                row_object.save()
+                # write FragmentTypeRel row
+                if is_attachment_morph_csv == 1:
+                    priority = row['Representative?']
+                    row_object = None
+                    if priority == '1':
+                        row_object = FragmentTypeRel(Type_id=cell_identifier,priority=1)
+                    else:
+                        row_object = FragmentTypeRel(Type_id=cell_identifier,priority=None)
+                    row_object.save()
+                else:
+                    priority = None
             except ValueError:
                 cell_identifier = None
-            try:
-                quote_reference_id = int(row['Quote reference id'])
-            except ValueError:
-                quote_reference_id = None
-            name_of_file_containing_figure = row['Name of file containing figure']
-            if len(name_of_file_containing_figure) == 0:
-                name_of_file_containing_figure = None
-            figure_table = row['Figure/Table']
-            row_object = Attachment(
-                cell_id     = cell_identifier,
-                original_id = quote_reference_id,
-                name        = name_of_file_containing_figure,
-                type        = figure_table
-            )
-            row_object.save()
-            # write FragmentTypeRel row
-            if is_attachment_morph_csv == 1:
-                priority = row['Representative?']
-                row_object = None
-                if priority == '1':
-                    row_object = FragmentTypeRel(Type_id=cell_identifier,priority=1)
-                else:
-                    row_object = FragmentTypeRel(Type_id=cell_identifier,priority=None)
-                row_object.save()
-            else:
-                priority = None
 
     # ingests known_connections.csv and populates TypeTypeRel
     def connection_to_connection(self):
