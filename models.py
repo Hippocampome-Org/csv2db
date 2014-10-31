@@ -15,39 +15,39 @@ class EnumField(models.Field):
         return "ENUM({})".format(','.join("'{}'".format(col) for col, _ in self.choices))
 
 class EnumAttachmentType(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('ephys_figure',  'Ephys_figure'),  ('ephys_table',  'Ephys_table'),
                   ('marker_figure', 'Marker_figure'), ('marker_table', 'Marker_table'),
                   ('morph_figure',  'Morph_figure'),  ('morph_table',  'Morph_table')]
         super(EnumAttachmentType, self).__init__(*args, choices=values, **kwargs)
 
 class EnumEvidenceEvidenceType(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('interpretation', 'Interpretation'), ('inference', 'Inference')]
         super(EnumEvidenceEvidenceType, self).__init__(*args, choices=values, **kwargs)
 
 class EnumFragmentAttachmentType(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('morph_figure', 'Morph_figure'), ('morph_table', 'Morph_table')]
         super(EnumFragmentAttachmentType, self).__init__(*args, choices=values, **kwargs)
 
 class EnumFragmentType(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('data', 'Data'), ('protocol', 'Protocol'), ('animal', 'Animal')]
         super(EnumFragmentType, self).__init__(*args, choices=values, **kwargs)
 
 class EnumTypeExcitInhib(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('e', 'E'), ('i', 'I')]
         super(EnumTypeExcitInhib, self).__init__(*args, choices=values, **kwargs)
 
 class EnumTypeStatus(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('active', 'Active'), ('frozen', 'Frozen')]
         super(EnumTypeStatus, self).__init__(*args, choices=values, **kwargs)
 
 class EnumTypeTypeConnectionStatus(EnumField, models.CharField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, choices=[], **kwargs):
         values = [('positive', 'Positive'), ('negative', 'Negative')]
         super(EnumTypeTypeConnectionStatus, self).__init__(*args, choices=values, **kwargs)
 
@@ -80,8 +80,8 @@ class article_not_found(models.Model):
 class ArticleAuthorRel(models.Model):
     id         = models.AutoField(primary_key=True)
     dt         = models.DateTimeField(auto_now_add=True)
-    Author_id  = models.IntegerField(null=True)
-    Article_id = models.IntegerField(null=True)
+    Author_id  = models.IntegerField(db_index=True, unique=False, null=True)
+    Article_id = models.IntegerField(db_index=True, unique=False, null=True)
     author_pos = models.IntegerField(null=True)
     class Meta:
         db_table = 'ArticleAuthorRel'
@@ -89,16 +89,16 @@ class ArticleAuthorRel(models.Model):
 class ArticleEvidenceRel(models.Model):
     id          = models.AutoField(primary_key=True)
     dt          = models.DateTimeField(auto_now_add=True)
-    Article_id  = models.IntegerField(null=True)
-    Evidence_id = models.IntegerField(null=True)
+    Article_id  = models.IntegerField(db_index=True, unique=False, null=True)
+    Evidence_id = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'ArticleEvidenceRel'
 
 class ArticleSynonymRel(models.Model):
     id         = models.AutoField(primary_key=True)
     dt         = models.DateTimeField(auto_now_add=True)
-    Article_id = models.IntegerField(null=True)
-    Synonym_id = models.IntegerField(null=True)
+    Article_id = models.IntegerField(db_index=True, unique=False, null=True)
+    Synonym_id = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'ArticleSynonymRel'
 
@@ -138,8 +138,8 @@ class Epdata(models.Model):
 class EpdataEvidenceRel(models.Model):
     id          = models.AutoField(primary_key=True)
     dt          = models.DateTimeField(auto_now_add=True)
-    Epdata_id   = models.IntegerField(null=True)
-    Evidence_id = models.IntegerField(null=True)
+    Epdata_id   = models.IntegerField(db_index=True, unique=False, null=True)
+    Evidence_id = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'EpdataEvidenceRel'
 
@@ -152,8 +152,8 @@ class Evidence(models.Model):
 class EvidenceEvidenceRel(models.Model):
     id           = models.AutoField(primary_key=True)
     dt           = models.DateTimeField(auto_now_add=True)
-    Evidence1_id = models.IntegerField(null=True)
-    Evidence2_id = models.IntegerField(null=True)
+    Evidence1_id = models.IntegerField(db_index=True, unique=False, null=True)
+    Evidence2_id = models.IntegerField(db_index=True, unique=False, null=True)
     type         = EnumEvidenceEvidenceType(max_length=14, null=True) # enum('interpretation','inference')
     class Meta:
         db_table = 'EvidenceEvidenceRel'
@@ -161,26 +161,26 @@ class EvidenceEvidenceRel(models.Model):
 class EvidenceFragmentRel(models.Model):
     id          = models.AutoField(primary_key=True)
     dt          = models.DateTimeField(auto_now_add=True)
-    Evidence_id = models.IntegerField(null=True)
-    Fragment_id = models.IntegerField(null=True)
+    Evidence_id = models.IntegerField(db_index=True, unique=False, null=True)
+    Fragment_id = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'EvidenceFragmentRel'
 
 class EvidenceMarkerdataRel(models.Model):
     id            = models.AutoField(primary_key=True)
     dt            = models.DateTimeField(auto_now_add=True)
-    Evidence_id   = models.IntegerField(null=True)
-    Markerdata_id = models.IntegerField(null=True)
+    Evidence_id   = models.IntegerField(db_index=True, unique=False, null=True)
+    Markerdata_id = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'EvidenceMarkerdataRel'
 
 class EvidencePropertyTypeRel(models.Model):
     id            = models.AutoField(primary_key=True)
     dt            = models.DateTimeField(auto_now_add=True)
-    Evidence_id   = models.IntegerField(null=True)
-    Property_id   = models.IntegerField(null=True)
-    Type_id       = models.IntegerField(null=True)
-    Article_id    = models.IntegerField(null=True)
+    Evidence_id   = models.IntegerField(db_index=True, unique=False, null=True)
+    Property_id   = models.IntegerField(db_index=True, unique=False, null=True)
+    Type_id       = models.IntegerField(db_index=True, unique=False, null=True)
+    Article_id    = models.IntegerField(db_index=True, unique=False, null=True)
     priority      = models.IntegerField(null=True)
     conflict_note = models.CharField(max_length=64, null=True)
     unvetted      = models.NullBooleanField(null=True)
@@ -204,8 +204,8 @@ class Fragment(models.Model):
 class FragmentTypeRel(models.Model):
     id          = models.AutoField(primary_key=True)
     dt          = models.DateTimeField(auto_now_add=True)
-    Fragment_id = models.IntegerField(null=True)
-    Type_id     = models.IntegerField(null=True)
+    Fragment_id = models.IntegerField(db_index=True, unique=False, null=True)
+    Type_id     = models.IntegerField(db_index=True, unique=False, null=True)
     priority    = models.NullBooleanField(null=True)
     class Meta:
         db_table = 'FragmentTypeRel'
@@ -239,8 +239,8 @@ class Synonym(models.Model):
 class SynonymTypeRel(models.Model):
     id          = models.AutoField(primary_key=True)
     dt          = models.DateTimeField(auto_now_add=True)
-    Synonym_id  = models.IntegerField(null=True)
-    Type_id     = models.IntegerField(null=True)
+    Synonym_id  = models.IntegerField(db_index=True, unique=False, null=True)
+    Type_id     = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'SynonymTypeRel'
 
@@ -260,8 +260,8 @@ class Type(models.Model):
 class TypeTypeRel(models.Model):
     id                  = models.AutoField(primary_key=True)
     dt                  = models.DateTimeField(auto_now_add=True)
-    Type1_id            = models.IntegerField(null=True)
-    Type2_id            = models.IntegerField(null=True)
+    Type1_id            = models.IntegerField(db_index=True, unique=False, null=True)
+    Type2_id            = models.IntegerField(db_index=True, unique=False, null=True)
     connection_status   = EnumTypeTypeConnectionStatus(max_length=8, null=True) # enum('positive','negative')
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
