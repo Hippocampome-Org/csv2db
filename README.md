@@ -19,8 +19,8 @@ To install and run "csv2db", the following versions (or later) of base code shou
 - CREATE DATABASE dbname DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
 
 ### Input
-"all.csv"
-- process order,csv filename,tables populated
+#### "all.csv"
+##### process order,csv filename,tables populated
 - 1,type.csv,"Type(all but notes field)"
 - 2,packet_notes.csv,"Type(updates notes field)"
 - 3,known_connections.csv,"TypeTypeRel"
