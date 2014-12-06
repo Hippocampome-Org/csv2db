@@ -1,11 +1,11 @@
 ## csv2db
 
-### Hippocampome CSV file to database ingest capability
+### Hippocampome CSV file to MySQL database ingest capability
 
 ### Description
-The "csv2db" capability ingests Hippocampome data in the form of Comma Separated Value (CSV) files and loads those data into a MySQL database. This capability was written in Django/Python. It is used to import the mined neuroinformatic peer-reviewed literature information of the Hippocampome project (GMU Ascoli lab) into a MySQL database for web portal rendering (http://hippocampome.org/). Both browser based and command line interfaces are facilitated for execution.
+The "csv2db" capability ingests Hippocampome data in the form of Comma Separated Value (CSV) files and loads those data into a MySQL database. This capability was written in Django/Python. It is used to import the mined neuroinformatic peer-reviewed literature data of the Hippocampome project (GMU Ascoli lab) into a MySQL database for machine-readable web portal rendering (http://hippocampome.org/). Both browser based and command line interfaces are facilitated.
 
-### Installation
+### Install
 To install and run "csv2db", the following versions (or later) of base code should be available (i.e. installed and configured) on the target platform.
 - Apache (2.2.26)
 - Python (3.4.2)
@@ -14,9 +14,11 @@ To install and run "csv2db", the following versions (or later) of base code shou
 - PyMySQL (0.6.2)
 - Django (1.7.1) https://www.djangoproject.com/
 
-### Configuration
+### Configure
 - git clone https://github.com/Hippocampome-Org/csv2db
-- CREATE DATABASE dbname DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+- CREATE DATABASE hippocampome DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+- CREATE USER 'hdb'@'localhost' IDENTIFIED BY 'somepasswd';
+- GRANT ALL PRIVILEGES ON hippocampome.* TO 'hdb'@'localhost' WITH GRANT OPTION;
 
 ### Input
 #### "all.csv"
@@ -35,9 +37,9 @@ To install and run "csv2db", the following versions (or later) of base code shou
 - 12,epdata.csv,"ArticleEvidenceRel, ArticleSynonymRel, Epdata, EpdataEvidenceRel, Evidence, EvidenceEvidenceRel, EvidenceFragmentRel, EvidencePropertyTypeRel, Fragment, Property"
 - 13,morphdata.csv,"ArticleSynonymRel, EvidencePropertyTypeRel, Property"
 
-### Processing (command line)
+### Process (command line)
 - python manage.py truncate
 - python manage.py load
 
 ### Output
-- mysqldump -u dbuser -p dbname > hippocampome.sql
+- mysqldump -u hdb -p hippocampome > hippocampome.sql
