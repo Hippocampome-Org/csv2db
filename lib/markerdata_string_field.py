@@ -68,10 +68,16 @@ class MarkerdataStringField:
             if '{' in string_field:
                 string_field_brace_split = string_field.split('{')
                 tag = string_field_brace_split[1][0]
-                if   tag == '1':
+                if   tag == 'p':
+                    conflict_note = 'positive'
+                elif tag == 'n':
+                    conflict_note = 'negative'
+                elif tag == '1':
                     conflict_note = 'subtypes'
+                elif tag == '2':
+                    conflict_note = 'conflicting data'
                 elif tag == '3':
-                    conflict_note = 'species differences'
+                    conflict_note = 'species/protocol differences'
 
             # begin parsing field string
             if '"' in string_field:
