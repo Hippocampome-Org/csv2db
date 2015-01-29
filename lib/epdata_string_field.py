@@ -4,6 +4,8 @@ import re
 from ..models import Article, ArticleEvidenceRel, ArticleSynonymRel, Epdata, EpdataEvidenceRel, Evidence, EvidenceEvidenceRel, EvidenceFragmentRel, EvidencePropertyTypeRel, Fragment, Property, SynonymTypeRel
 from ..models import article_not_found
 
+parameters = ('Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APampl', 'APwidth', 'maxFR', 'sAHP', 'sag')
+
 cols = ('PMID{Table_or_Figure#;Vrest ± SD (n)}',
         'PMID{Table_or_Figure#;Rin ± SD (n)}',
         'PMID{Table_or_Figure#;taum ± SD (n)}',
@@ -347,6 +349,8 @@ class EpdataStringField:
                         # raw
                         raw = pmid_isbn + ' {' + location + '; ' + value1_string + ' ± ' + error_string + ' @' + istim_string + '@' + time_string + ' (' + n_string + std_sem_string + ')}'
                         #example: raw = 9497429 {Table 1, wild type; 0.6 ± 0.4 @250@1000 (16 SEM)}
+                        # parameter
+                        parameter = parameters[col_unit]
                         row_object = Epdata(
                             raw      = raw,
                             value1   = value1,
@@ -361,17 +365,53 @@ class EpdataStringField:
                         )
                         row_object.save()
                         Epdata_id = row_object.id
-                        # Fragment entries - check for dups before write
-                        type = None
+
+                        # Fragment entries - check for dups before write and find matching fragment for "original_id"
+                        unique_id    = row['Unique ID'].strip()
+                        unique_id    = re.sub(r'-', r'', unique_id)
+                        cell_id      = int(unique_id)
+                        Fragment_id  = None
                         Evidence2_id = None
+                        type         = None
                         try:
-                            row_object   = Fragment.objects.get(quote=location,page_location=location,pmid_isbn=pmid_isbn,type=type)
+                            row_object   = Fragment.objects.get(quote=location,page_location=location,pmid_isbn=pmid_isbn,type=type,parameter=parameter)
                             Fragment_id  = row_object.id
                             row_object   = EvidenceFragmentRel.objects.get(Fragment_id=Fragment_id)
                             Evidence2_id = row_object.Evidence_id
                         except Fragment.DoesNotExist:
+                            # set original_id and other info from Fragment record if found
+                            original_id            = None
+                            interpretation         = None
+                            interpretation_notes   = None
+                            linking_cell_id        = None
+                            linking_pmid_isbn      = None
+                            linking_pmid_isbn_page = None
+                            linking_quote          = None
+                            linking_page_location  = None
+                            try:
+                                row_object  = Fragment.objects.get(cell_id=cell_id,pmid_isbn=pmid_isbn,parameter=parameter)
+                                original_id            = row_object.original_id
+                                interpretation         = row_object.interpretation
+                                interpretation_notes   = row_object.interpretation_notes
+                                linking_cell_id        = row_object.linking_cell_id
+                                linking_pmid_isbn      = row_object.linking_pmid_isbn
+                                linking_pmid_isbn_page = row_object.linking_pmid_isbn_page
+                                linking_quote          = row_object.linking_quote
+                                linking_page_location  = row_object.linking_page_location
+                            except Exception:
+                                pass
+                            #end set original_id and other info from Fragment record if found
                             # add Fragment conditionally
-                            row_object = Fragment(quote=location,page_location=location,pmid_isbn=pmid_isbn,type=type)
+                            row_object = Fragment(original_id=original_id,quote=location,page_location=location,pmid_isbn=pmid_isbn,type=type,parameter=parameter,
+                                                  cell_id                = cell_id,
+                                                  interpretation         = interpretation,
+                                                  interpretation_notes   = interpretation_notes,
+                                                  linking_cell_id        = linking_cell_id,
+                                                  linking_pmid_isbn      = linking_pmid_isbn,
+                                                  linking_pmid_isbn_page = linking_pmid_isbn_page,
+                                                  linking_quote          = linking_quote,
+                                                  linking_page_location  = linking_page_location
+                                                 )
                             row_object.save()
                             Fragment_id = row_object.id
                             # add Evidence conditionally
@@ -394,6 +434,8 @@ class EpdataStringField:
                             row_object = ArticleEvidenceRel(Article_id=Article_id,Evidence_id=Evidence_id)
                             row_object.save()
                             #end add ArticleEvidenceRel conditionally
+                        #end Fragment entries - check for dups before write and find matching fragment for "original_id"
+
                         # add Evidence always
                         row_object = Evidence()
                         row_object.save()

@@ -131,10 +131,12 @@ class Map:
             elif order == '10':
                Map.fragment_to_fragment(self)
             elif order == '11':
-               Map.markerdata_to_markerdata(self)
+               Map.fragment_to_fragment(self)
             elif order == '12':
-               Map.epdata_to_epdata(self)
+               Map.markerdata_to_markerdata(self)
             elif order == '13':
+               Map.epdata_to_epdata(self)
+            elif order == '14':
                Map.morphdata_to_morphdata(self)
             else:
                 pass
@@ -258,25 +260,58 @@ class Map:
         self.rows = DictReader(self.f)
         for row in self.rows:
             try:
+                # set cell_identifier
                 cell_identifier = int(row['Cell Identifier'])
+                # set quote_reference_id
                 try:
                     quote_reference_id = int(row['Quote reference id'])
                 except ValueError:
                     quote_reference_id = None
+                # set name_of_file_containing_figure
                 name_of_file_containing_figure = row['Name of file containing figure']
                 if len(name_of_file_containing_figure) == 0:
                     name_of_file_containing_figure = None
+                # set figure_table
                 figure_table = row['Figure/Table']
                 if is_attachment_morph_csv == 1:
                     if figure_table == 'figure':
                         figure_table = 'morph_figure'
                     elif figure_table == 'table':
                         figure_table = 'morph_table'
+                # set parameter
+                parameter = None
+                try:
+                    parameter = row['Parameter'].strip()
+                    if len(parameter) == 0:
+                        parameter = None
+                    else:
+                        # map Attachment parameter value to Fragment parameter value
+                        parameters_attachment = ('Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APamplitude', 'APwidth', 'maxFR', 'sAHP', 'sag')
+                        parameters_fragment   = ('Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APampl'     , 'APwidth', 'maxFR', 'sAHP', 'sag')
+                        p = 0
+                        for parameter_attachment in parameters_attachment:
+                            if parameter == parameter_attachment:
+                                parameter = parameters_fragment[p]
+                                break
+                            else:
+                                p = p + 1
+                except Exception:
+                    parameter = None
+                # set interpretation_notes
+                try:
+                    interpretation_notes = row['Interpretation notes figures'].strip()
+                    if len(interpretation_notes) == 0:
+                        interpretation_notes = None
+                except Exception:
+                    interpretation_notes = None
+                # write Attachment record
                 row_object = Attachment(
-                    cell_id     = cell_identifier,
-                    original_id = quote_reference_id,
-                    name        = name_of_file_containing_figure,
-                    type        = figure_table
+                    cell_id              = cell_identifier,
+                    original_id          = quote_reference_id,
+                    name                 = name_of_file_containing_figure,
+                    type                 = figure_table,
+                    parameter            = parameter,
+                    interpretation_notes = interpretation_notes
                 )
                 row_object.save()
                 # write FragmentTypeRel row
@@ -320,27 +355,34 @@ class Map:
             except Exception:
                 break
 
-    # ingests morph_fragment.csv, marker_fragment.csv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel(updates Fragment_id field)
+    # ingests morph_fragment.csv, marker_fragment.csv, ep_fragment.csv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel(updates Fragment_id field)
     def fragment_to_fragment(self):
         fragment_id = 1
         for row in self.rows: # is this a morph_fragment.csv file or a marker_fragment.csv file
+            is_morph_fragment_csv          = 0
+            saw_protocol_reference         = 0
+            saw_ephys_parameters_extracted = 0
             try:
                 protocol_reference = row['Protocol Reference']
                 saw_protocol_reference = 1
-                is_morph_fragment_csv = 0
-                row_object = EvidenceFragmentRel.objects.last()
+                row_object  = EvidenceFragmentRel.objects.last()
                 fragment_id = row_object.Fragment_id + 1 # initialize from last morph_fragment.csv entry
             except Exception:
-                saw_protocol_reference = 0
-                is_morph_fragment_csv = 1
-                row_object = Evidence()
-                row_object.save()
-                fragment_id = 1
+                try:
+                    ephys_parameters_extracted = row['Ephys Parameters Extracted']
+                    saw_ephys_parameters_extracted = 1
+                    row_object  = EvidenceFragmentRel.objects.last()
+                    fragment_id = row_object.Fragment_id + 1 # initialize from last morph_fragment.csv entry
+                except Exception:
+                    is_morph_fragment_csv = 1
+                    row_object = Evidence()
+                    row_object.save()
+                    fragment_id = 1
             break
         self.f.seek(0) # rewind the file
         self.rows = DictReader(self.f)
         for row in self.rows:
-            fragment_id = FragmentStringField.parse_and_save(row,saw_protocol_reference,is_morph_fragment_csv,fragment_id)
+            fragment_id = FragmentStringField.parse_and_save(row,fragment_id,saw_protocol_reference,saw_ephys_parameters_extracted)
         #end for row in self.rows:
         # conditionally update Fragment_id fields in FragmentTypeRel
         if is_morph_fragment_csv == 1:

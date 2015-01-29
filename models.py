@@ -103,12 +103,14 @@ class ArticleSynonymRel(models.Model):
         db_table = 'ArticleSynonymRel'
 
 class Attachment(models.Model):
-    id          = models.AutoField(primary_key=True)
-    dt          = models.DateTimeField(auto_now_add=True)
-    cell_id     = models.IntegerField(null=True)
-    original_id = models.IntegerField(null=True)
-    name        = models.CharField(max_length=256, null=True)
-    type        = EnumAttachmentType(max_length=13, null=True) # enum('ephys_figure','ephys_table','marker_figure','marker_table','morph_figure','morph_table')
+    id                   = models.AutoField(primary_key=True)
+    dt                   = models.DateTimeField(auto_now_add=True)
+    cell_id              = models.IntegerField(null=True)
+    original_id          = models.IntegerField(null=True)
+    name                 = models.CharField(max_length=256, null=True)
+    type                 = EnumAttachmentType(max_length=13, null=True) # enum('ephys_figure','ephys_table','marker_figure','marker_table','morph_figure','morph_table')
+    parameter            = models.CharField(max_length=64, null=True)
+    interpretation_notes = models.TextField(null=True)
     class Meta:
         db_table = 'Attachment'
 
@@ -188,16 +190,25 @@ class EvidencePropertyTypeRel(models.Model):
         db_table = 'EvidencePropertyTypeRel'
 
 class Fragment(models.Model):
-    id              = models.AutoField(primary_key=True)
-    original_id     = models.IntegerField(null=True)
-    dt              = models.DateTimeField(auto_now_add=True)
-    quote           = models.TextField(null=True)
-    page_location   = models.CharField(max_length=64, null=True)
-    pmid_isbn       = models.BigIntegerField(null=True)
-    pmid_isbn_page  = models.IntegerField(null=True)
-    type            = EnumFragmentType(max_length=8, null=True) # enum('data','protocol','animal')
-    attachment      = models.CharField(max_length=256, null=True)
-    attachment_type = EnumFragmentAttachmentType(max_length=12, null=True) # enum('morph_figure','morph_table')
+    id                     = models.AutoField(primary_key=True)
+    original_id            = models.IntegerField(null=True)
+    dt                     = models.DateTimeField(auto_now_add=True)
+    quote                  = models.TextField(null=True)
+    page_location          = models.CharField(max_length=64, null=True)
+    pmid_isbn              = models.BigIntegerField(null=True)
+    pmid_isbn_page         = models.IntegerField(null=True)
+    type                   = EnumFragmentType(max_length=8, null=True) # enum('data','protocol','animal')
+    attachment             = models.CharField(max_length=256, null=True)
+    attachment_type        = EnumFragmentAttachmentType(max_length=12, null=True) # enum('morph_figure','morph_table')
+    cell_id                = models.IntegerField(null=True)
+    parameter              = models.CharField(max_length=64, null=True)
+    interpretation         = models.CharField(max_length=64, null=True)
+    interpretation_notes   = models.TextField(null=True)
+    linking_cell_id        = models.IntegerField(null=True)
+    linking_pmid_isbn      = models.BigIntegerField(null=True)
+    linking_pmid_isbn_page = models.IntegerField(null=True)
+    linking_quote          = models.TextField(null=True)
+    linking_page_location  = models.CharField(max_length=64, null=True)
     class Meta:
         db_table = 'Fragment'
 

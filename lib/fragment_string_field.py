@@ -3,41 +3,59 @@
 from ..models import Article, ArticleEvidenceRel, Attachment, Evidence, EvidenceFragmentRel, Fragment
 from ..models import article_not_found
 
-# ingests morph_fragment.csv, marker_fragment.csv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, Fragment
+# ingests morph_fragment.csv, marker_fragment.csv, ep_fragment.scv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, Fragment
 class FragmentStringField:
-    def parse_and_save(row,saw_protocol_reference,is_morph_fragment_csv,fragment_id):
+    def parse_and_save(row,fragment_id,saw_protocol_reference,saw_ephys_parameters_extracted):
+        reference_id                   = None
+        material_used                  = None
+        location_in_reference          = None
+        protocol_reference             = None
+        location_in_protocol_reference = None
+        pmid_isbn                      = None
+        pmid_isbn_page                 = None
+        type                           = None
+        article_id                     = None
+        attachment                     = None
+        attachment_type                = None
+        # set reference_id
         try:
             reference_id = int(row['ReferenceID'])
         except Exception:
             reference_id = None
+        # set material_used
         try:
             material_used = row['Material Used']
             if len(material_used) == 0:
                 material_used = None
         except Exception:
             material_used = None
+        # set location_in_reference
         try:
             location_in_reference = row['Location in reference']
             if len(location_in_reference) == 0:
                 location_in_reference = None
         except Exception:
             location_in_reference = None
+        # set protocol_reference
         try:
             protocol_reference = row['Protocol Reference']
             if len(protocol_reference) == 0:
                 protocol_reference = None
         except Exception:
             protocol_reference = None
+        # set location_in_protocol_reference
         try:
             location_in_protocol_reference = row['Location in protocol reference']
             if len(location_in_protocol_reference) == 0:
                 location_in_protocol_reference = None
         except Exception:
             location_in_protocol_reference = None
+        # set pmid_isbn
         try:
             pmid_isbn = int(row['PMID/ISBN'].replace('-',''))
         except Exception:
             pmid_isbn = None
+        # set pmid_isbn_page
         try:
             pmid_isbn_page = int(row['pmid_isbn_page'])
         except Exception:
@@ -75,7 +93,9 @@ class FragmentStringField:
                     row_object = article_not_found(pmid_isbn=pmid_isbn)
                     row_object.save()
         #end set article_id
+        # set type
         type = 'data'
+        # set attachment and attachment_type
         obj = Attachment.objects.filter(original_id=reference_id, type='morph_figure').order_by('id').last()
         if obj is None:
             attachment      = None
@@ -83,17 +103,90 @@ class FragmentStringField:
         else:
             attachment      = obj.name
             attachment_type = obj.type
+        # if ephys file
+        cell_id                = None
+        parameter              = None
+        interpretation         = None
+        interpretation_notes   = None
+        linking_cell_id        = None
+        linking_pmid_isbn      = None
+        linking_pmid_isbn_page = None
+        linking_quote          = None
+        linking_page_location  = None
+        if saw_ephys_parameters_extracted == 1:
+            # set cell_id
+            try:
+                cell_id = int(row['Cell ID'].strip())
+            except Exception:
+                cell_id = None
+            # set parameter
+            try:
+                parameter = row['Ephys Parameters Extracted'].strip()
+                if len(parameter) == 0:
+                    parameter = None
+            except Exception:
+                parameter = None
+            # set interpretation
+            try:
+                interpretation = row['Interpretation'].strip()
+                if len(interpretation) == 0:
+                    interpretation = None
+            except Exception:
+                interpretation = None
+            # set interpretation_notes
+            try:
+                interpretation_notes = row['Interpretation Notes'].strip()
+                if len(interpretation_notes) == 0:
+                    interpretation_notes = None
+            except Exception:
+                interpretation_notes = None
+            # set linking_cell_id
+            try:
+                linking_cell_id = int(row['Linking Cell ID'].strip())
+            except Exception:
+                linking_cell_id = None
+            # set linking_pmid_isbn
+            try:
+                linking_pmid_isbn = int(row['Linking PMID'].replace('-',''))
+            except Exception:
+                linking_pmid_isbn = None
+            # set linking_quote
+            try:
+                linking_quote = row['Linking Quote'].strip()
+                if len(linking_quote) == 0:
+                    linking_quote = None
+            except Exception:
+                linking_quote = None
+            # set linking_page_location
+            try:
+                linking_page_location = row['Linking Quote Location'].strip()
+                if len(linking_page_location) == 0:
+                    linking_page_location = None
+            except Exception:
+                linking_page_location = None
+        #end if ephys file
+
+        # write fragment record(s)
         if reference_id != None:
             # Fragment type = type
             row_object = Fragment(
-                original_id     = reference_id,
-                quote           = material_used,
-                page_location   = location_in_reference,
-                pmid_isbn       = pmid_isbn,
-                pmid_isbn_page  = pmid_isbn_page,
-                type            = type,
-                attachment      = attachment,
-                attachment_type = attachment_type
+                original_id            = reference_id,
+                quote                  = material_used,
+                page_location          = location_in_reference,
+                pmid_isbn              = pmid_isbn,
+                pmid_isbn_page         = pmid_isbn_page,
+                type                   = type,
+                attachment             = attachment,
+                attachment_type        = attachment_type,
+                cell_id                = cell_id,
+                parameter              = parameter,
+                interpretation         = interpretation,
+                interpretation_notes   = interpretation_notes,
+                linking_cell_id        = linking_cell_id,
+                linking_pmid_isbn      = linking_pmid_isbn,
+                linking_pmid_isbn_page = linking_pmid_isbn_page,
+                linking_quote          = linking_quote,
+                linking_page_location  = linking_page_location
             )
             row_object.save()
             row_object = Evidence()
@@ -161,6 +254,6 @@ class FragmentStringField:
                 row_object.save()
                 fragment_id = fragment_id + 1
             # end if saw_protocol_reference == 1:
-        #end if reference_id != None:
+        #end write fragment record(s)
         return(fragment_id)
     #end def parse_and_save(row):
