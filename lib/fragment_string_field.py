@@ -103,7 +103,8 @@ class FragmentStringField:
         else:
             attachment      = obj.name
             attachment_type = obj.type
-        # if ephys file
+
+        # inits for both marker and ephys interpretation and linking info
         cell_id                = None
         parameter              = None
         interpretation         = None
@@ -113,6 +114,55 @@ class FragmentStringField:
         linking_pmid_isbn_page = None
         linking_quote          = None
         linking_page_location  = None
+
+        # if marker file
+        if saw_protocol_reference == 1:
+            # set interpretation
+            try:
+                interpretation = row['Interpretation'].strip()
+                if len(interpretation) == 0:
+                    interpretation = None
+            except Exception:
+                interpretation = None
+            # set interpretation_notes
+            try:
+                interpretation_notes = row['Interpretation Notes'].strip()
+                if len(interpretation_notes) == 0:
+                    interpretation_notes = None
+            except Exception:
+                interpretation_notes = None
+            # set linking_cell_id
+            try:
+                linking_cell_id = int(row['Linking Cell ID'].strip())
+            except Exception:
+                linking_cell_id = None
+            # set linking_pmid_isbn
+            try:
+                linking_pmid_isbn = int(row['Linking PMID'].replace('-',''))
+            except Exception:
+                linking_pmid_isbn = None
+            # set linking_pmid_isbn_page
+            try:
+                linking_pmid_isbn_page = int(row['linking_pmid_isbn_page'])
+            except Exception:
+                linking_pmid_isbn_page = None
+            # set linking_quote
+            try:
+                linking_quote = row['Linking Quote'].strip()
+                if len(linking_quote) == 0:
+                    linking_quote = None
+            except Exception:
+                linking_quote = None
+            # set linking_page_location
+            try:
+                linking_page_location = row['Linking Quote Location'].strip()
+                if len(linking_page_location) == 0:
+                    linking_page_location = None
+            except Exception:
+                linking_page_location = None
+        #end if marker file
+
+        # if ephys file
         if saw_ephys_parameters_extracted == 1:
             # set cell_id
             try:
@@ -150,6 +200,11 @@ class FragmentStringField:
                 linking_pmid_isbn = int(row['Linking PMID'].replace('-',''))
             except Exception:
                 linking_pmid_isbn = None
+            # set linking_pmid_isbn_page
+            try:
+                linking_pmid_isbn_page = int(row['linking_pmid_isbn_page'])
+            except Exception:
+                linking_pmid_isbn_page = None
             # set linking_quote
             try:
                 linking_quote = row['Linking Quote'].strip()

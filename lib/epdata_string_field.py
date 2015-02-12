@@ -374,13 +374,16 @@ class EpdataStringField:
                         Evidence2_id = None
                         type         = None
                         try:
-                            row_object   = Fragment.objects.get(quote=location,page_location=location,pmid_isbn=pmid_isbn,type=type,parameter=parameter)
+                            row_object   = Fragment.objects.get(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type=type)  # from epdata.csv where type=None
                             Fragment_id  = row_object.id
                             row_object   = EvidenceFragmentRel.objects.get(Fragment_id=Fragment_id)
                             Evidence2_id = row_object.Evidence_id
                         except Fragment.DoesNotExist:
                             # set original_id and other info from Fragment record if found
                             original_id            = None
+                            quote                  = None
+                            page_location          = None
+                            pmid_isbn_page         = None
                             interpretation         = None
                             interpretation_notes   = None
                             linking_cell_id        = None
@@ -389,8 +392,11 @@ class EpdataStringField:
                             linking_quote          = None
                             linking_page_location  = None
                             try:
-                                row_object  = Fragment.objects.get(cell_id=cell_id,pmid_isbn=pmid_isbn,parameter=parameter)
+                                row_object  = Fragment.objects.get(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type='data')  # from ep_fragment.csv where type='data'
                                 original_id            = row_object.original_id
+                                quote                  = row_object.quote
+                                page_location          = row_object.page_location
+                                pmid_isbn_page         = row_object.pmid_isbn_page
                                 interpretation         = row_object.interpretation
                                 interpretation_notes   = row_object.interpretation_notes
                                 linking_cell_id        = row_object.linking_cell_id
@@ -402,8 +408,11 @@ class EpdataStringField:
                                 pass
                             #end set original_id and other info from Fragment record if found
                             # add Fragment conditionally
-                            row_object = Fragment(original_id=original_id,quote=location,page_location=location,pmid_isbn=pmid_isbn,type=type,parameter=parameter,
-                                                  cell_id                = cell_id,
+                            row_object = Fragment(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type=type,  # from epdata.csv where type=None
+                                                  original_id            = original_id,
+                                                  quote                  = quote,
+                                                  page_location          = page_location,
+                                                  pmid_isbn_page         = pmid_isbn_page,
                                                   interpretation         = interpretation,
                                                   interpretation_notes   = interpretation_notes,
                                                   linking_cell_id        = linking_cell_id,
