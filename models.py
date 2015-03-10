@@ -106,7 +106,7 @@ class Attachment(models.Model):
     id                   = models.AutoField(primary_key=True)
     dt                   = models.DateTimeField(auto_now_add=True)
     cell_id              = models.IntegerField(null=True)
-    original_id          = models.IntegerField(null=True)
+    original_id          = models.BigIntegerField(null=True)
     name                 = models.CharField(max_length=256, null=True)
     type                 = EnumAttachmentType(max_length=13, null=True) # enum('ephys_figure','ephys_table','marker_figure','marker_table','morph_figure','morph_table')
     parameter            = models.CharField(max_length=64, null=True)
@@ -191,7 +191,7 @@ class EvidencePropertyTypeRel(models.Model):
 
 class Fragment(models.Model):
     id                     = models.AutoField(primary_key=True)
-    original_id            = models.IntegerField(null=True)
+    original_id            = models.BigIntegerField(null=True)
     dt                     = models.DateTimeField(auto_now_add=True)
     quote                  = models.TextField(null=True)
     page_location          = models.CharField(max_length=64, null=True)
