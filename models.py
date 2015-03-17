@@ -186,6 +186,7 @@ class EvidencePropertyTypeRel(models.Model):
     priority      = models.IntegerField(null=True)
     conflict_note = models.CharField(max_length=64, null=True)
     unvetted      = models.NullBooleanField(null=True)
+    linking_quote = models.TextField(null=True)
     class Meta:
         db_table = 'EvidencePropertyTypeRel'
 

@@ -392,7 +392,8 @@ class EpdataStringField:
                             linking_quote          = None
                             linking_page_location  = None
                             try:
-                                row_object  = Fragment.objects.get(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type='data')  # from ep_fragment.csv where type='data'
+                                # from ep_fragment.csv where type='data'
+                                row_object  = Fragment.objects.filter(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type='data').order_by('id').first()
                                 original_id            = row_object.original_id
                                 quote                  = row_object.quote
                                 page_location          = row_object.page_location
