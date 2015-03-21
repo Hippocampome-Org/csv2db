@@ -86,6 +86,8 @@ class MarkerdataStringField:
                 string_field_sub = string_field[q1+1:] + '; '
                 tokens = string_field_sub.split(';')
                 for token in tokens:
+                    if '[' in token:
+                        continue # skip this inferred evidence
                     linking_quote = None
                     if '*' in token:
                         token_linking_quote = token.strip()
