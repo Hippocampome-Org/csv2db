@@ -36,6 +36,7 @@ col_property = ('Vrest',
                 '',
                 'Vrest_Page Location',
                 'Vrest_Notes',
+                'Vrest_Orig ID',
                 'Rin',
                 'Rin_Rep Value?',
                 'Rin_Statistics String',
@@ -45,6 +46,7 @@ col_property = ('Vrest',
                 '',
                 'Rin_Page Location',
                 'Rin_Notes',
+                'Rin_Orig ID',
                 'tau',
                 'tau_Rep Value?',
                 'tau_Statistics String',
@@ -54,6 +56,7 @@ col_property = ('Vrest',
                 '',
                 'tau_Page Location',
                 'tau_Notes',
+                'tau_Orig ID',
                 'Vthresh',
                 'Vthresh_Rep Value?',
                 'Vthresh_Statistics String',
@@ -63,6 +66,7 @@ col_property = ('Vrest',
                 '',
                 'Vthresh_Page Location',
                 'Vthresh_Notes',
+                'Vthresh_Orig ID',
                 'Fast AHP',
                 'Fast AHP_Rep Value?',
                 'Fast AHP_Statistics String',
@@ -72,6 +76,7 @@ col_property = ('Vrest',
                 '',
                 'Fast AHP_Page Location',
                 'Fast AHP_Notes',
+                'Fast AHP_Orig ID',
                 'AP ampl',
                 'AP ampl_Rep Value?',
                 'AP ampl_Statistics String',
@@ -81,6 +86,7 @@ col_property = ('Vrest',
                 '',
                 'AP ampl_Page Location',
                 'AP ampl_Notes',
+                'AP ampl_Orig ID',
                 'AP width',
                 'AP width_Rep Value?',
                 'AP width_Statistics String',
@@ -90,6 +96,7 @@ col_property = ('Vrest',
                 '',
                 'AP width_Page Location',
                 'AP width_Notes',
+                'AP width_Orig ID',
                 'Max F.R.',
                 'Max F.R._Rep Value?',
                 'Max F.R._Statistics String',
@@ -99,6 +106,7 @@ col_property = ('Vrest',
                 'Max F.R._t stim',
                 'Max F.R._Page Location',
                 'Max F.R._Notes',
+                'Max F.R._Orig ID',
                 'Slow AHP',
                 'Slow AHP_Rep Value?',
                 'Slow AHP_Statistics String',
@@ -108,6 +116,7 @@ col_property = ('Vrest',
                 'Slow AHP_t stim',
                 'Slow AHP_Page Location',
                 'Slow AHP_Notes',
+                'Slow AHP_Orig ID',
                 'Sag ratio',
                 'Sag ratio_Rep Value?',
                 'Sag ratio_Statistics String',
@@ -116,8 +125,9 @@ col_property = ('Vrest',
                 'Sag ratio_i stim',
                 '',
                 'Sag ratio_Page Location',
-                'Sag ratio_Notes')
-col_properties_per_set       = 9
+                'Sag ratio_Notes',
+                'Sag ratio_Orig ID')
+col_properties_per_set       = 10
 col_property_offset_value1   = 0
 col_property_offset_value2   = 1
 col_property_offset_error    = 2
@@ -126,6 +136,8 @@ col_property_offset_n        = 4
 col_property_offset_istim    = 5
 col_property_offset_time     = 6
 col_property_offset_location = 7
+col_property_offset_notes    = 8
+col_property_offset_orig_id  = 9
 
 epdata_property = [['Vrest',     'is between', '[-inf, +inf]'],
                    ['Rin',       'is between', '[-inf, +inf]'],
@@ -346,6 +358,41 @@ class EpdataStringField:
                         location = row[col_property[col_property_set+col_property_offset_location]]
                         location = location.strip()
                         location = re.sub(r';', r',', location)
+                        # original_id
+                        original_id = None
+                        try:
+                            original_id_string = row[col_property[col_property_set+col_property_offset_orig_id]].strip()
+                            original_id_string = original_id_string.strip()
+                            if original_id_string != '':
+                                original_id = int(original_id_string)
+                        except Exception:
+                            pass
+                        # protocol - Species | Method | Raw temperature | Room/body temperature
+                        species               = ' '
+                        method                = ' '
+                        raw_temperature       = ' '
+                        room_body_temperature = ' '
+                        protocol              = ' '
+                        try:
+                            species = row['Species']
+                            species = species.strip()
+                            if species == 'None given':
+                                species = ' '
+                            method = row['Method']
+                            method = method.strip()
+                            if method == 'None given':
+                                method = ' '
+                            raw_temperature = row['Raw temperature']
+                            raw_temperature = raw_temperature.strip()
+                            if raw_temperature == 'None given':
+                                raw_temperature = ' '
+                            room_body_temperature = row['Room/body temperature']
+                            room_body_temperature = room_body_temperature.strip()
+                            if room_body_temperature == 'None given':
+                                room_body_temperature = ' '
+                            protocol = species + ' | ' + method + ' | ' + raw_temperature + ' | ' + room_body_temperature
+                        except Exception:
+                            pass
                         # raw
                         raw = pmid_isbn + ' {' + location + '; ' + value1_string + ' ± ' + error_string + ' @' + istim_string + '@' + time_string + ' (' + n_string + std_sem_string + ')}'
                         #example: raw = 9497429 {Table 1, wild type; 0.6 ± 0.4 @250@1000 (16 SEM)}
@@ -374,13 +421,13 @@ class EpdataStringField:
                         Evidence2_id = None
                         type         = None
                         try:
-                            row_object   = Fragment.objects.get(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type=type)  # from epdata.csv where type=None
+                            row_object   = Fragment.objects.get(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type=type,original_id=original_id)  # from epdata.csv where type=None
                             Fragment_id  = row_object.id
                             row_object   = EvidenceFragmentRel.objects.get(Fragment_id=Fragment_id)
                             Evidence2_id = row_object.Evidence_id
                         except Fragment.DoesNotExist:
                             # set original_id and other info from Fragment record if found
-                            original_id            = None
+                            #original_id            = None
                             quote                  = None
                             page_location          = None
                             pmid_isbn_page         = None
@@ -393,8 +440,8 @@ class EpdataStringField:
                             linking_page_location  = None
                             try:
                                 # from ep_fragment.csv where type='data'
-                                row_object  = Fragment.objects.filter(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type='data').order_by('id').first()
-                                original_id            = row_object.original_id
+                                row_object  = Fragment.objects.filter(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type='data',original_id=original_id).order_by('id').first()
+                                #original_id            = row_object.original_id
                                 quote                  = row_object.quote
                                 page_location          = row_object.page_location
                                 pmid_isbn_page         = row_object.pmid_isbn_page
@@ -408,6 +455,12 @@ class EpdataStringField:
                             except Exception:
                                 pass
                             #end set original_id and other info from Fragment record if found
+                            # protocol
+                            try:
+                                page_location = re.sub(r',', r' |', page_location)
+                                page_location = page_location + ', ' + protocol
+                            except Exception:
+                                pass
                             # add Fragment conditionally
                             row_object = Fragment(pmid_isbn=pmid_isbn,cell_id=cell_id,parameter=parameter,type=type,  # from epdata.csv where type=None
                                                   original_id            = original_id,

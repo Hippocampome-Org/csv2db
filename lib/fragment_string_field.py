@@ -177,12 +177,12 @@ class FragmentStringField:
             except Exception:
                 parameter = None
             # set interpretation
-            try:
-                interpretation = row['Interpretation'].strip()
-                if len(interpretation) == 0:
-                    interpretation = None
-            except Exception:
-                interpretation = None
+            #try:
+            #    interpretation = row['Interpretation'].strip()
+            #    if len(interpretation) == 0:
+            #        interpretation = None
+            #except Exception:
+            #    interpretation = None
             # set interpretation_notes
             try:
                 interpretation_notes = row['Interpretation Notes'].strip()
