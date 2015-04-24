@@ -187,16 +187,17 @@ class EpdataStringField:
         col_unit = 0
         col_property_set = 0
         for col in cols:
-            raw      = None
-            value1   = None
-            value2   = None
-            error    = None
-            std_sem  = None
-            n        = None
-            istim    = None
-            time     = None
-            unit     = None
-            location = None
+            raw       = None
+            value1    = None
+            value2    = None
+            error     = None
+            std_sem   = None
+            n         = None
+            istim     = None
+            time      = None
+            unit      = None
+            location  = None
+            rep_value = None
             try:
                 pmid_isbn = row['PMID'].strip()
 
@@ -293,6 +294,13 @@ class EpdataStringField:
                         #    value2 = None
                         #else:
                         #    value2 = value2_string
+                        # rep_value
+                        rep_value = None
+                        rep_value_string = row[col_property[col_property_set+col_property_offset_value2]]
+                        if rep_value_string == '':
+                            rep_value = None
+                        else:
+                            rep_value = rep_value_string.strip()
                         # error
                         error_string = row[col_property[col_property_set+col_property_offset_error]]
                         if error_string == '':
@@ -399,16 +407,17 @@ class EpdataStringField:
                         # parameter
                         parameter = parameters[col_unit]
                         row_object = Epdata(
-                            raw      = raw,
-                            value1   = value1,
-                            value2   = value2,
-                            error    = error,
-                            std_sem  = std_sem,
-                            n        = n,
-                            istim    = istim,
-                            time     = time,
-                            unit     = unit,
-                            location = location
+                            raw       = raw,
+                            value1    = value1,
+                            value2    = value2,
+                            error     = error,
+                            std_sem   = std_sem,
+                            n         = n,
+                            istim     = istim,
+                            time      = time,
+                            unit      = unit,
+                            location  = location,
+                            rep_value = rep_value
                         )
                         row_object.save()
                         Epdata_id = row_object.id

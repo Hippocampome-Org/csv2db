@@ -122,18 +122,19 @@ class Author(models.Model):
         db_table = 'Author'
 
 class Epdata(models.Model):
-    id       = models.AutoField(primary_key=True)
-    dt       = models.DateTimeField(auto_now_add=True)
-    raw      = models.CharField(max_length=162, null=True)
-    value1   = FloatFloatField(null=True)
-    value2   = FloatFloatField(null=True)
-    error    = FloatFloatField(null=True)
-    std_sem  = models.CharField(max_length=32, null=True)
-    n        = FloatFloatField(null=True)
-    istim    = models.CharField(max_length=32, null=True)
-    time     = models.CharField(max_length=32, null=True)
-    unit     = models.CharField(max_length=8, null=True)
-    location = models.CharField(max_length=128, null=True)
+    id        = models.AutoField(primary_key=True)
+    dt        = models.DateTimeField(auto_now_add=True)
+    raw       = models.CharField(max_length=162, null=True)
+    value1    = FloatFloatField(null=True)
+    value2    = FloatFloatField(null=True)
+    error     = FloatFloatField(null=True)
+    std_sem   = models.CharField(max_length=32, null=True)
+    n         = FloatFloatField(null=True)
+    istim     = models.CharField(max_length=32, null=True)
+    time      = models.CharField(max_length=32, null=True)
+    unit      = models.CharField(max_length=8, null=True)
+    location  = models.CharField(max_length=128, null=True)
+    rep_value = models.CharField(max_length=128, null=True)
     class Meta:
         db_table = 'Epdata'
 
