@@ -63,12 +63,13 @@ class MarkerdataStringField:
             string_field = row[col]
 
             # tag and conflict note determination
-            tag           = None
-            conflict_note = None
-            linking_quote = None
+            tag                       = None
+            conflict_note             = None
+            interpretation_notes      = None
+            property_type_explanation = None
             if '{' in string_field:
-                string_field_brace_split = string_field.split('{')
-                tag = string_field_brace_split[1][0]
+                string_field_open_brace_split = string_field.split('{')
+                tag = string_field_open_brace_split[1][0]
                 if   tag == 'p':
                     conflict_note = 'positive'
                 elif tag == 'n':
@@ -79,6 +80,13 @@ class MarkerdataStringField:
                     conflict_note = 'conflicting data'
                 elif tag == '3':
                     conflict_note = 'species/protocol differences'
+                string_field_close_brace_split = string_field_open_brace_split[1].split('}')
+                token = string_field_close_brace_split[0]
+                if '*' in token:
+                    token_property_type_explanation  = token.strip()
+                    tokens_property_type_explanation = token_property_type_explanation.split('*')
+                    property_type_explanation        = tokens_property_type_explanation[1]
+                string_field = string_field_close_brace_split[1]
 
             # begin parsing field string
             if '"' in string_field:
@@ -88,11 +96,11 @@ class MarkerdataStringField:
                 for token in tokens:
                     if '[' in token:
                         continue # skip this inferred evidence
-                    linking_quote = None
+                    interpretation_notes = None
                     if '*' in token:
-                        token_linking_quote = token.strip()
-                        tokens_linking_quote = token_linking_quote.split('*')
-                        linking_quote = tokens_linking_quote[1]
+                        token_interpretation_notes  = token.strip()
+                        tokens_interpretation_notes = token_interpretation_notes.split('*')
+                        interpretation_notes        = tokens_interpretation_notes[1]
                     #end if
                     if '.' in token:
                         token = token.strip()
@@ -252,9 +260,9 @@ class MarkerdataStringField:
                                 row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
                                 Property_id = row_object.id
                                 try:
-                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,linking_quote=linking_quote)
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,interpretation_notes=interpretation_notes,property_type_explanation=property_type_explanation)
                                 except EvidencePropertyTypeRel.DoesNotExist:
-                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,linking_quote=linking_quote)
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,interpretation_notes=interpretation_notes,property_type_explanation=property_type_explanation)
                                     row_object.save()
                                     if Evidence_id != 1:
                                         # add ArticleSynonymRel record if unique
@@ -284,9 +292,9 @@ class MarkerdataStringField:
                                 row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
                                 Property_id = row_object.id
                                 try:
-                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,linking_quote=linking_quote)
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,interpretation_notes=interpretation_notes,property_type_explanation=property_type_explanation)
                                 except EvidencePropertyTypeRel.DoesNotExist:
-                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,linking_quote=linking_quote)
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,interpretation_notes=interpretation_notes,property_type_explanation=property_type_explanation)
                                     row_object.save()
                                     if Evidence_id != 1:
                                         # add ArticleSynonymRel record if unique
@@ -317,9 +325,9 @@ class MarkerdataStringField:
                                 row_object = Property.objects.get(subject=subject,predicate=predicate,object=object)
                                 Property_id = row_object.id
                                 try:
-                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,linking_quote=linking_quote)
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,interpretation_notes=interpretation_notes,property_type_explanation=property_type_explanation)
                                 except EvidencePropertyTypeRel.DoesNotExist:
-                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,linking_quote=linking_quote)
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,conflict_note=conflict_note,unvetted=unvetted,interpretation_notes=interpretation_notes,property_type_explanation=property_type_explanation)
                                     row_object.save()
                                     if Evidence_id != 1:
                                         # add ArticleSynonymRel record if unique

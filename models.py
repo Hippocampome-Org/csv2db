@@ -178,16 +178,18 @@ class EvidenceMarkerdataRel(models.Model):
         db_table = 'EvidenceMarkerdataRel'
 
 class EvidencePropertyTypeRel(models.Model):
-    id            = models.AutoField(primary_key=True)
-    dt            = models.DateTimeField(auto_now_add=True)
-    Evidence_id   = models.IntegerField(db_index=True, unique=False, null=True)
-    Property_id   = models.IntegerField(db_index=True, unique=False, null=True)
-    Type_id       = models.IntegerField(db_index=True, unique=False, null=True)
-    Article_id    = models.IntegerField(db_index=True, unique=False, null=True)
-    priority      = models.IntegerField(null=True)
-    conflict_note = models.CharField(max_length=64, null=True)
-    unvetted      = models.NullBooleanField(null=True)
-    linking_quote = models.TextField(null=True)
+    id                        = models.AutoField(primary_key=True)
+    dt                        = models.DateTimeField(auto_now_add=True)
+    Evidence_id               = models.IntegerField(db_index=True, unique=False, null=True)
+    Property_id               = models.IntegerField(db_index=True, unique=False, null=True)
+    Type_id                   = models.IntegerField(db_index=True, unique=False, null=True)
+    Article_id                = models.IntegerField(db_index=True, unique=False, null=True)
+    priority                  = models.IntegerField(null=True)
+    conflict_note             = models.CharField(max_length=64, null=True)
+    unvetted                  = models.NullBooleanField(null=True)
+    linking_quote             = models.TextField(null=True)
+    interpretation_notes      = models.TextField(null=True)
+    property_type_explanation = models.TextField(null=True)
     class Meta:
         db_table = 'EvidencePropertyTypeRel'
 
