@@ -331,14 +331,18 @@ class Map:
     # ingests known_connections.csv and populates TypeTypeRel
     def connection_to_connection(self):
         for row in self.rows:
-            Type1_id = int(row['Source class identity'])
-            Type2_id = int(row['Target class identity'])
+            try:
+                Type1_id = int(row['Source class identity'])
+                Type2_id = int(row['Target class identity'])
+            except ValueError:
+                continue
             connection_status_string = row['Connection?']
             connection_status = 'negative'
             if connection_status_string == '1':
                connection_status = 'positive'
             connection_location_string = row['Target layer']
-            connection_locations = connection_location_string.split(',')
+            #connection_locations = connection_location_string.split(',') # was using ',' separator in original version of known_connections.csv
+            connection_locations = connection_location_string.split(';') # now using ';' separator in new version of known_connections.csv
             for connection_location in connection_locations:
                 try:
                     row_object = TypeTypeRel.objects.get(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location.strip())
