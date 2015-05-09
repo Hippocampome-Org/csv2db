@@ -92,8 +92,25 @@ class MarkerdataStringField:
             if '"' in string_field:
                 q1 = string_field.find('"')
                 string_field_sub = string_field[q1+1:] + '; '
-                tokens = string_field_sub.split(';')
+                # handle ';' in <"*6 of 7 positive; at least one with soma in SR*"> example from CA1 Ivy - CB
+                insert_placeholder_char = 0
+                prev_char               = ''
+                prev_prev_char          = ''
+                placeholder_string      = ''
+                for char in string_field_sub:
+                    if prev_prev_char == '<' and prev_char == '"' and char == '*':
+                        insert_placeholder_char = 1
+                    if char == ';' and insert_placeholder_char == 1:
+                        placeholder_string = placeholder_string + '}'   # change character ';' to placeholder character '}'
+                    else:
+                       placeholder_string = placeholder_string + char
+                    if prev_prev_char == '*' and prev_char == '"' and char == '>':
+                        insert_placeholder_char = 0
+                    prev_prev_char = prev_char
+                    prev_char      = char
+                tokens = placeholder_string.split(';')
                 for token in tokens:
+                    token = re.sub(r'}', r';', token) # change placeholder character '}' back to character ';'
                     if '[' in token:
                         continue # skip this inferred evidence
                     interpretation_notes = None
