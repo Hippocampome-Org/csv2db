@@ -29,6 +29,7 @@ col_cleaned  = ('Original Spreadsheet Row',
 
 col_property = ('Vrest',
                 'Vrest_Rep Value?',
+                'Vrest_> Value?',
                 'Vrest_Statistics String',
                 'Vrest_Statistical Method',
                 'Vrest_n',
@@ -39,6 +40,7 @@ col_property = ('Vrest',
                 'Vrest_Orig ID',
                 'Rin',
                 'Rin_Rep Value?',
+                'Rin_> Value?',
                 'Rin_Statistics String',
                 'Rin_Statistical Method',
                 'Rin_n',
@@ -49,6 +51,7 @@ col_property = ('Vrest',
                 'Rin_Orig ID',
                 'tau',
                 'tau_Rep Value?',
+                'tau_> Value?',
                 'tau_Statistics String',
                 'tau_Statistical Method',
                 'tau_n',
@@ -59,6 +62,7 @@ col_property = ('Vrest',
                 'tau_Orig ID',
                 'Vthresh',
                 'Vthresh_Rep Value?',
+                'Vthresh_> Value?',
                 'Vthresh_Statistics String',
                 'Vthresh_Statistical Method',
                 'Vthresh_n',
@@ -69,6 +73,7 @@ col_property = ('Vrest',
                 'Vthresh_Orig ID',
                 'Fast AHP',
                 'Fast AHP_Rep Value?',
+                'Fast AHP_> Value?',
                 'Fast AHP_Statistics String',
                 'Fast AHP_Statistical Method',
                 'Fast AHP_n',
@@ -79,6 +84,7 @@ col_property = ('Vrest',
                 'Fast AHP_Orig ID',
                 'AP ampl',
                 'AP ampl_Rep Value?',
+                'AP ampl_> Value?',
                 'AP ampl_Statistics String',
                 'AP ampl_Statistical Method',
                 'AP ampl_n',
@@ -89,6 +95,7 @@ col_property = ('Vrest',
                 'AP ampl_Orig ID',
                 'AP width',
                 'AP width_Rep Value?',
+                'AP width_> Value?',
                 'AP width_Statistics String',
                 'AP width_Statistical Method',
                 'AP width_n',
@@ -99,6 +106,7 @@ col_property = ('Vrest',
                 'AP width_Orig ID',
                 'Max F.R.',
                 'Max F.R._Rep Value?',
+                'Max F.R._> Value?',
                 'Max F.R._Statistics String',
                 'Max F.R._Statistical Method',
                 'Max F.R._n',
@@ -109,6 +117,7 @@ col_property = ('Vrest',
                 'Max F.R._Orig ID',
                 'Slow AHP',
                 'Slow AHP_Rep Value?',
+                'Slow AHP_> Value?',
                 'Slow AHP_Statistics String',
                 'Slow AHP_Statistical Method',
                 'Slow AHP_n',
@@ -119,6 +128,7 @@ col_property = ('Vrest',
                 'Slow AHP_Orig ID',
                 'Sag ratio',
                 'Sag ratio_Rep Value?',
+                'Sag ratio_> Value?',
                 'Sag ratio_Statistics String',
                 'Sag ratio_Statistical Method',
                 'Sag ratio_n',
@@ -127,17 +137,18 @@ col_property = ('Vrest',
                 'Sag ratio_Page Location',
                 'Sag ratio_Notes',
                 'Sag ratio_Orig ID')
-col_properties_per_set       = 10
+col_properties_per_set       = 11
 col_property_offset_value1   = 0
 col_property_offset_value2   = 1
-col_property_offset_error    = 2
-col_property_offset_std_sem  = 3
-col_property_offset_n        = 4
-col_property_offset_istim    = 5
-col_property_offset_time     = 6
-col_property_offset_location = 7
-col_property_offset_notes    = 8
-col_property_offset_orig_id  = 9
+col_property_offset_gt_value = 2
+col_property_offset_error    = 3
+col_property_offset_std_sem  = 4
+col_property_offset_n        = 5
+col_property_offset_istim    = 6
+col_property_offset_time     = 7
+col_property_offset_location = 8
+col_property_offset_notes    = 9
+col_property_offset_orig_id  = 10
 
 epdata_property = [['Vrest',     'is between', '[-inf, +inf]'],
                    ['Rin',       'is between', '[-inf, +inf]'],
@@ -198,6 +209,7 @@ class EpdataStringField:
             unit      = None
             location  = None
             rep_value = None
+            gt_value  = None
             try:
                 pmid_isbn = row['PMID'].strip()
 
@@ -301,6 +313,13 @@ class EpdataStringField:
                             rep_value = None
                         else:
                             rep_value = rep_value_string.strip()
+                        # gt_value
+                        gt_value = None
+                        gt_value_string = row[col_property[col_property_set+col_property_offset_gt_value]]
+                        if gt_value_string == '':
+                            gt_value = None
+                        else:
+                            gt_value = gt_value_string.strip()
                         # error
                         error_string = row[col_property[col_property_set+col_property_offset_error]]
                         if error_string == '':
@@ -417,7 +436,8 @@ class EpdataStringField:
                             time      = time,
                             unit      = unit,
                             location  = location,
-                            rep_value = rep_value
+                            rep_value = rep_value,
+                            gt_value  = gt_value
                         )
                         row_object.save()
                         Epdata_id = row_object.id

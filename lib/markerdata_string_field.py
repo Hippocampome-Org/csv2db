@@ -3,7 +3,7 @@
 import re
 from ..models import ArticleEvidenceRel, ArticleSynonymRel, Evidence, EvidenceEvidenceRel, EvidenceFragmentRel, EvidenceMarkerdataRel, EvidencePropertyTypeRel, Fragment, Markerdata, Property, SynonymTypeRel
 
-cols = ('1','2','3','4','5','6','7','8','9','10',
+cols = ( '1', '2', '3', '4', '5', '6', '7', '8', '9','10',
         '11','12','13','14','15','16','17','18','19','20',
         '21','22','23','24','25','26','27','28','29','30',
         '31','32','33','34','35','36','37','38','39','40',
@@ -12,7 +12,7 @@ cols = ('1','2','3','4','5','6','7','8','9','10',
         '61','62','63','64','65','66','67','68','69','70',
         '71','72','73','74','75','76','77','78','79','80',
         '81','82','83','84','85','86','87','88','89','90',
-        '91','92','93','94','95','96')
+        '91','92','93','94','95','96','97')
 
 markers = ('CB', 'CR', 'PV', 'CB1', 'Mus2R', 'Sub P Rec', '5HT-3', 'Gaba-a-alpha', 'mGluR1a', 'vGluT3',
            'CCK', 'ENK', 'NPY', 'SOM', 'VIP', 'NG', 'alpha-actinin-2', 'CoupTF II', 'nNOS', 'RLN',
@@ -23,7 +23,7 @@ markers = ('CB', 'CR', 'PV', 'CB1', 'Mus2R', 'Sub P Rec', '5HT-3', 'Gaba-a-alpha
            'Math-2', 'Neuropilin2', 'Id-2', 'vGAT', 'SATB1', 'NECAB1', 'Chrna2', 'Y2', 'mGluR1', 'GluR2/3',
            'CRF', 'GABA-B1', 'Caln', 'vGlut1', 'mGluR2', 'mGluR3', 'mGluR4', 'SPO', 'GABAa\\alpha 2', 'GABAa\\alpha 3',
            'GABAa\\alpha 4', 'GABAa\\alpha 5', 'GABAa\\alpha 6', 'GABAa\\beta 1', 'GABAa\\beta 2', 'GABAa\\beta 3', 'GABAa\\gamma 1', 'GABAa\\gamma 2', 'mGluR5a', 'SATB2',
-           'Ctip2', 'GluA2', 'GluA1', 'GluA3', 'GluA4', 'GAT-3')
+           'Ctip2', 'GluA2', 'GluA1', 'GluA3', 'GluA4', 'GAT-3', 'CXCR4')
 
 """
 @marker_code = {

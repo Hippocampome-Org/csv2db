@@ -135,6 +135,7 @@ class Epdata(models.Model):
     unit      = models.CharField(max_length=8, null=True)
     location  = models.CharField(max_length=128, null=True)
     rep_value = models.CharField(max_length=128, null=True)
+    gt_value  = models.NullBooleanField(null=True)
     class Meta:
         db_table = 'Epdata'
 
