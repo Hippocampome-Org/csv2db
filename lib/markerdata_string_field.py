@@ -77,9 +77,9 @@ class MarkerdataStringField:
                 elif tag == '1':
                     conflict_note = 'subtypes'
                 elif tag == '2':
-                    conflict_note = 'conflicting data'
+                    conflict_note = 'unresolved'
                 elif tag == '3':
-                    conflict_note = 'species/protocol differences'
+                    conflict_note = 'species/protocol/subcellular expression differences'
                 string_field_close_brace_split = string_field_open_brace_split[1].split('}')
                 token = string_field_close_brace_split[0]
                 if '*' in token:
