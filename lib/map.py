@@ -6,7 +6,7 @@ import re
 from csv import DictReader, reader
 from datetime import datetime as dt
 from io import TextIOWrapper
-from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, Synonym, SynonymTypeRel, Type, TypeTypeRel
+from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
 from ..models import article_not_found
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
@@ -64,6 +64,14 @@ class Map:
             self.stdout.write('%s begin... %s' % (dt.now(), type_csv_file_path))
             Map.type_to_type(self, dev)
             self.stdout.write('%s .....end %s' % (dt.now(), type_csv_file_path))
+        elif dev == 'term':
+            term_csv_filename = 'term.csv'
+            term_csv_file_path = os.path.join(module_dir, term_csv_filename)
+            term_csv_file_buffer = open(term_csv_file_path, 'rb')
+            self.rows = DictReader(TextIOWrapper(term_csv_file_buffer, encoding='UTF-8'))
+            self.stdout.write('%s begin... %s' % (dt.now(), term_csv_file_path))
+            Map.term_to_term(self)
+            self.stdout.write('%s .....end %s' % (dt.now(), term_csv_file_path))
         else:
             pass
 
@@ -468,6 +476,37 @@ class Map:
             Synonym_id = row_object.id
             Type_id    = row_object.cell_id
             row_object = SynonymTypeRel(Synonym_id=Synonym_id,Type_id=Type_id)
+            row_object.save()
+
+    # ingests term.csv and populates Term
+    def term_to_term(self):
+        for row in self.rows:
+            parent = row['Parent']
+            if len(parent) == 0:
+                parent = None
+            term = row['Term']
+            if len(term) == 0:
+                term = None
+            portal = row['Portal']
+            if len(portal) == 0:
+                portal = None
+            repository = row['Repository']
+            if len(repository) == 0:
+                repository = None
+            unique_id = row['Unique ID']
+            if len(unique_id) == 0:
+                unique_id = None
+            definition_link = row['Definition Link']
+            if len(definition_link) == 0:
+                definition_link = None
+            row_object = Term(
+                parent          = parent,
+                term            = term,
+                portal          = portal,
+                repository      = repository,
+                unique_id       = unique_id,
+                definition_link = definition_link
+            )
             row_object.save()
 
     # ingests type.csv and populates Type(all but notes field)

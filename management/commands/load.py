@@ -9,6 +9,12 @@ class Command(BaseCommand):
     help = 'load tables'
 
     option_list = BaseCommand.option_list + (
+        make_option('--term',
+            action='store_true',
+            dest='term',
+            default=False,
+            help='load Term table'),
+        ) + (
         make_option('--type',
             action='store_true',
             dest='type',
@@ -24,7 +30,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            if options['type']:
+            if options['term']:
+                self.stdout.write('%s begin... term_to_term' % dt.now())
+                dev = 'term'
+                Map.all_csv(self, dev)
+                self.stdout.write('%s .....end term_to_term' % dt.now())
+            elif options['type']:
                 self.stdout.write('%s begin... type_to_type' % dt.now())
                 dev = 'false'
                 Map.all_csv(self, dev)

@@ -260,6 +260,18 @@ class SynonymTypeRel(models.Model):
     class Meta:
         db_table = 'SynonymTypeRel'
 
+class Term(models.Model):
+    id              = models.AutoField(primary_key=True)
+    dt              = models.DateTimeField(auto_now_add=True)
+    parent          = models.CharField(max_length=400, null=True)
+    term            = models.CharField(max_length=400, null=True)
+    portal          = models.CharField(max_length=200, null=True)
+    repository      = models.CharField(max_length=200, null=True)
+    unique_id       = models.CharField(max_length=400, null=True)
+    definition_link = models.CharField(max_length=5000, null=True)
+    class Meta:
+        db_table = 'Term'
+
 class Type(models.Model):
     id          = models.AutoField(primary_key=True)
     position    = models.IntegerField(null=True)
