@@ -269,6 +269,10 @@ class Term(models.Model):
     repository      = models.CharField(max_length=200, null=True)
     unique_id       = models.CharField(max_length=400, null=True)
     definition_link = models.CharField(max_length=5000, null=True)
+    definition      = models.CharField(max_length=5000, null=True)
+    protein_gene    = models.CharField(max_length=100, null=True)
+    human_rat       = models.CharField(max_length=100, null=True)
+    control         = models.CharField(max_length=100, null=True)
     class Meta:
         db_table = 'Term'
 

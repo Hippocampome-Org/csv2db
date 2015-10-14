@@ -499,13 +499,29 @@ class Map:
             definition_link = row['Definition Link']
             if len(definition_link) == 0:
                 definition_link = None
+            definition = row['Definition']
+            if len(definition) == 0:
+                definition = None
+            protein_gene = row['protein_gene']
+            if len(protein_gene) == 0:
+                protein_gene = None
+            human_rat = row['human_rat']
+            if len(human_rat) == 0:
+                human_rat = None
+            control = row['control']
+            if len(control) == 0:
+                control = None
             row_object = Term(
                 parent          = parent,
                 term            = term,
                 portal          = portal,
                 repository      = repository,
                 unique_id       = unique_id,
-                definition_link = definition_link
+                definition_link = definition_link,
+                definition      = definition,
+                protein_gene    = protein_gene,
+                human_rat       = human_rat,
+                control         = control
             )
             row_object.save()
 
