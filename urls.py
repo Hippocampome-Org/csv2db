@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     url(r'^import_morphdata/$', views.import_morphdata, name='import_morphdata'),
     url(r'^import_notes/$', views.import_notes, name='import_notes'),
     url(r'^import_synonym/$', views.import_synonym, name='import_synonym'),
+    url(r'^import_term/$', views.import_term, name='import_term'),
     url(r'^import_type/$', views.import_type, name='import_type'),
     url(r'^import_type_dev/$', views.import_type_dev, name='import_type_dev'),
 )

@@ -155,6 +155,21 @@ def import_synonym(request):
         form = UploadFileForm()
     return render(request, 'csv2db/import_synonym.html', {'form': form})
 
+def import_term(request):
+    if request.method == "POST":
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                Map(request).term_to_term()
+                return render(request, 'csv2db/done.html')
+            except KeyError:
+                return render(request, 'csv2db/error.html')
+        else:
+            form = UploadFileForm()
+    else:
+        form = UploadFileForm()
+    return render(request, 'csv2db/import_term.html', {'form': form})
+
 def import_type(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)

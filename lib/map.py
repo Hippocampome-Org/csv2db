@@ -146,6 +146,8 @@ class Map:
                Map.epdata_to_epdata(self)
             elif order == '14':
                Map.morphdata_to_morphdata(self)
+            elif order == '15':
+               Map.term_to_term(self)
             else:
                 pass
             try:

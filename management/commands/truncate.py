@@ -52,6 +52,8 @@ class Command(BaseCommand):
             self.stdout.write('Successfully truncated Synonym')
             cursor.execute('truncate table SynonymTypeRel')
             self.stdout.write('Successfully truncated SynonymTypeRel')
+            cursor.execute('truncate table Term')
+            self.stdout.write('Successfully truncated Term')
             cursor.execute('truncate table Type')
             self.stdout.write('Successfully truncated Type')
             cursor.execute('truncate table TypeTypeRel')
