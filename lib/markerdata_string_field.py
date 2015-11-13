@@ -70,18 +70,33 @@ class MarkerdataStringField:
             if '{' in string_field:
                 string_field_open_brace_split = string_field.split('{')
                 tag = string_field_open_brace_split[1][0]
-                if   tag == 'p':
-                    conflict_note = 'positive'
-                elif tag == 'n':
-                    conflict_note = 'negative'
-                elif tag == '1':
-                    conflict_note = 'subtypes'
-                elif tag == '2':
-                    conflict_note = 'unresolved'
-                elif tag == '3':
-                    conflict_note = 'species/protocol/subcellular expression differences'
                 string_field_close_brace_split = string_field_open_brace_split[1].split('}')
-                token = string_field_close_brace_split[0]
+                token = string_field_close_brace_split[0].strip()
+                if '<' in token:
+                    token_split = token.split('<')
+                    token_sans_comment = token_split[0].strip()
+                else:
+                    token_sans_comment = token
+                if   token_sans_comment == 'p':
+                    conflict_note = 'positive'
+                elif token_sans_comment == 'n':
+                    conflict_note = 'negative'
+                elif token_sans_comment == '1':
+                    conflict_note = 'subtypes'
+                elif token_sans_comment == '2':
+                    conflict_note = 'unresolved'
+                elif token_sans_comment == '3':
+                    conflict_note = 'species/protocol/subcellular expression differences'
+                elif token_sans_comment == 'pi':
+                    conflict_note = None
+                elif token_sans_comment == 'ni':
+                    conflict_note = None
+                elif token_sans_comment == 'pi,ni':
+                    conflict_note = None
+                elif token_sans_comment == 'p,ni':
+                    conflict_note = 'positive'
+                elif token_sans_comment == 'pi,n':
+                    conflict_note = 'negative'
                 if '*' in token:
                     token_property_type_explanation  = token.strip()
                     tokens_property_type_explanation = token_property_type_explanation.split('*')
@@ -143,6 +158,12 @@ class MarkerdataStringField:
                         elif token[0] == '5':
                             expression  = '["positive", "negative"]'
                             object      =   'positive_negative'
+                        elif token[0] == '8':
+                            expression  = '["positive_inference"]'
+                            object      =   'positive_inference'
+                        elif token[0] == '9':
+                            expression  = '["negative_inference"]'
+                            object      =   'negative_inference'
                         else:
                             if tag is None:
                                 continue
