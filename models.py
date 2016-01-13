@@ -110,6 +110,7 @@ class Attachment(models.Model):
     name                 = models.CharField(max_length=256, null=True)
     type                 = EnumAttachmentType(max_length=13, null=True) # enum('ephys_figure','ephys_table','marker_figure','marker_table','morph_figure','morph_table')
     parameter            = models.CharField(max_length=64, null=True)
+    protocol_tag         = models.CharField(max_length=64, null=True)
     interpretation_notes = models.TextField(null=True)
     class Meta:
         db_table = 'Attachment'

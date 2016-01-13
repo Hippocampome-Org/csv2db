@@ -307,6 +307,13 @@ class Map:
                                 p = p + 1
                 except Exception:
                     parameter = None
+                # set protocol_tag
+                try:
+                    protocol_tag = row['Protocol_tag'].strip()
+                    if len(protocol_tag) == 0:
+                        protocol_tag = None
+                except Exception:
+                    protocol_tag = None
                 # set interpretation_notes
                 try:
                     interpretation_notes = row['Interpretation notes figures'].strip()
@@ -321,6 +328,7 @@ class Map:
                     name                 = name_of_file_containing_figure,
                     type                 = figure_table,
                     parameter            = parameter,
+                    protocol_tag         = protocol_tag,
                     interpretation_notes = interpretation_notes
                 )
                 row_object.save()
