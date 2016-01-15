@@ -88,15 +88,15 @@ class MarkerdataStringField:
                 elif token_sans_comment == '3':
                     conflict_note = 'species/protocol/subcellular expression differences'
                 elif token_sans_comment == 'pi':
-                    conflict_note = None
+                    conflict_note = 'positive inference'
                 elif token_sans_comment == 'ni':
-                    conflict_note = None
+                    conflict_note = 'negative inference'
                 elif token_sans_comment == 'pi,ni':
-                    conflict_note = None
+                    conflict_note = 'positive inference; negative inference'
                 elif token_sans_comment == 'p,ni':
-                    conflict_note = 'positive'
+                    conflict_note = 'positive; negative inference'
                 elif token_sans_comment == 'pi,n':
-                    conflict_note = 'negative'
+                    conflict_note = 'positive inference; negative'
                 if '*' in token:
                     token_property_type_explanation  = token.strip()
                     tokens_property_type_explanation = token_property_type_explanation.split('*')
