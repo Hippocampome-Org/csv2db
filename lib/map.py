@@ -494,6 +494,9 @@ class Map:
             parent = row['Parent']
             if len(parent) == 0:
                 parent = None
+            concept = row['Concept']
+            if len(concept) == 0:
+                concept = None
             term = row['Term']
             if len(term) == 0:
                 term = None
@@ -523,6 +526,7 @@ class Map:
                 control = None
             row_object = Term(
                 parent          = parent,
+                concept         = concept,
                 term            = term,
                 portal          = portal,
                 repository      = repository,
