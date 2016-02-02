@@ -122,6 +122,34 @@ class Author(models.Model):
     class Meta:
         db_table = 'Author'
 
+class Conndata(models.Model):
+    id                  = models.AutoField(primary_key=True)
+    dt                  = models.DateTimeField(auto_now_add=True)
+    Type1_id            = models.IntegerField(db_index=True, unique=False, null=True)
+    Type2_id            = models.IntegerField(db_index=True, unique=False, null=True)
+    connection_status   = EnumTypeTypeConnectionStatus(max_length=8, null=True) # enum('positive','negative')
+    connection_location = models.CharField(max_length=16, null=True)
+    class Meta:
+        db_table = 'Conndata'
+
+class ConnFragment(models.Model):
+    id                     = models.AutoField(primary_key=True)
+    original_id            = models.BigIntegerField(null=True)
+    dt                     = models.DateTimeField(auto_now_add=True)
+    quote                  = models.TextField(null=True)
+    page_location          = models.CharField(max_length=64, null=True)
+    pmid_isbn              = models.BigIntegerField(null=True)
+    class Meta:
+        db_table = 'ConnFragment'
+
+class ConndataFragmentRel(models.Model):
+    id                          = models.AutoField(primary_key=True)
+    dt                          = models.DateTimeField(auto_now_add=True)
+    Conndata_id                 = models.IntegerField(db_index=True, unique=False, null=True)
+    ConnFragment_id             = models.IntegerField(db_index=True, unique=False, null=True)
+    class Meta:
+        db_table = 'ConndataFragmentRel'
+
 class Epdata(models.Model):
     id        = models.AutoField(primary_key=True)
     dt        = models.DateTimeField(auto_now_add=True)
@@ -192,6 +220,10 @@ class EvidencePropertyTypeRel(models.Model):
     linking_quote             = models.TextField(null=True)
     interpretation_notes      = models.TextField(null=True)
     property_type_explanation = models.TextField(null=True)
+    soma_pcl_flag             = models.NullBooleanField(null=True)
+    ax_de_pcl_flag            = models.IntegerField(unique=False,null=True)
+    perisomatic_targeting_flag= models.IntegerField(unique=False,null=True)
+    supplemental_pmids        = models.CharField(max_length=256, null=True)
     class Meta:
         db_table = 'EvidencePropertyTypeRel'
 
@@ -227,6 +259,17 @@ class FragmentTypeRel(models.Model):
     class Meta:
         db_table = 'FragmentTypeRel'
 
+class ingest_errors(models.Model):
+    id                          = models.AutoField(primary_key=True)
+    dt                          = models.DateTimeField(auto_now_add=True)
+    field                       = models.CharField(max_length=64, null=True)
+    value                       = models.CharField(max_length=64, null=True)
+    filename                    = models.CharField(max_length=64, null=True)
+    file_row_num                = models.IntegerField(unique=False, null=True)
+    comment                     = models.CharField(max_length=255, null=True)
+    class Meta:
+        db_table = 'ingest_errors'
+        
 class Markerdata(models.Model):
     id         = models.AutoField(primary_key=True)
     dt         = models.DateTimeField(auto_now_add=True)
@@ -300,3 +343,6 @@ class TypeTypeRel(models.Model):
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
         db_table = 'TypeTypeRel'
+
+
+

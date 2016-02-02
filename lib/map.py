@@ -6,7 +6,7 @@ import re
 from csv import DictReader, reader
 from datetime import datetime as dt
 from io import TextIOWrapper
-from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
+from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel, ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
 from ..models import article_not_found
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
@@ -118,36 +118,40 @@ class Map:
                 pass
             if   order == '1':
                #dev = 'true'
-               dev = 'false'
-               Map.type_to_type(self, dev)
+                dev = 'false'
+                Map.type_to_type(self, dev)
             elif order == '2':
-               Map.notes_to_type(self)
+                Map.notes_to_type(self)
             elif order == '3':
-               Map.connection_to_connection(self)
+                Map.connection_to_connection(self)
             elif order == '4':
-               Map.synonym_to_synonym(self)
+                Map.synonym_to_synonym(self)
             elif order == '5':
-               Map.article_to_article(self)
+                Map.article_to_article(self)
             elif order == '6':
-               Map.attachment_to_attachment(self)
+                Map.attachment_to_attachment(self)
             elif order == '7':
-               Map.attachment_to_attachment(self)
+                Map.attachment_to_attachment(self)
             elif order == '8':
-               Map.attachment_to_attachment(self)
+                Map.attachment_to_attachment(self)
             elif order == '9':
-               Map.fragment_to_fragment(self)
+                Map.fragment_to_fragment(self)
             elif order == '10':
-               Map.fragment_to_fragment(self)
+                Map.fragment_to_fragment(self)
             elif order == '11':
-               Map.fragment_to_fragment(self)
+                Map.fragment_to_fragment(self)
             elif order == '12':
-               Map.markerdata_to_markerdata(self)
+                Map.markerdata_to_markerdata(self)
             elif order == '13':
-               Map.epdata_to_epdata(self)
+                Map.epdata_to_epdata(self)
             elif order == '14':
-               Map.morphdata_to_morphdata(self)
+                Map.morphdata_to_morphdata(self)
             elif order == '15':
-               Map.term_to_term(self)
+                Map.connfragment_to_connfragment(self)
+            elif order == '16':
+                Map.conndata_to_conndata(self)
+            elif order == '17':
+                Map.term_to_term(self)
             else:
                 pass
             try:
@@ -367,6 +371,174 @@ class Map:
                 except TypeTypeRel.DoesNotExist:
                     row_object = TypeTypeRel(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location.strip())
                     row_object.save()
+
+    # ingests conndata.csv and populate Conndata table
+    def conndata_to_conndata(self):
+        row_num=1          # starting header offset
+        for row in self.rows:
+            row_num=row_num+1 
+            try:
+                Type1_id = int(row['Source_ID'])
+                Type2_id = int(row['Target_ID'])
+                connection_location_string=row['Layers'].strip()
+                connection_status_string = row['Connection?'].strip()
+                reference_id_string=row['RefIDs'].strip()
+            except ValueError:
+                continue
+            if connection_status_string == '1':
+                connection_status = 'positive'
+            elif connection_status_string == '0':
+                connection_status = 'negative'
+            elif connection_status_string == '4':
+                connection_status = 'positive'
+            elif connection_status_string == '5':
+                connection_status = 'positive'
+            elif len(connection_status_string)!=0:
+                try:    
+                    row_object = ingest_errors.objects.get(field='Connection?',value=connection_status_string,filename='conndata.csv',file_row_num=row_num,comment='invalid connection value')
+                except ingest_errors.DoesNotExist:
+                    row_object = ingest_errors(field='Connection?',value=connection_status_string,filename='conndata.csv',file_row_num=row_num,comment='invalid connection value')
+                    row_object.save()
+                continue
+            else:
+                continue
+            connection_locations = connection_location_string.split(';')
+            references= reference_id_string.split(';')
+            for connection_location in connection_locations:
+                if len(connection_location)!=0:
+                    connection_location=connection_location.strip()
+                    # if not exists create connection
+                    try:
+                        row_object = Conndata.objects.get(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location)
+                    except Conndata.DoesNotExist:
+                        row_object = Conndata(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location)
+                        row_object.save()
+                    Connection_id=row_object.id
+                    for reference in references:
+                        if len(reference)!=0:
+                            reference=reference.strip()
+                            ConnFragment_id=None
+                            # if reference is not a number 
+                            if not(reference.isdigit()):
+                                try:
+                                    row_object = ingest_errors.objects.get(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='invalid reference value')
+                                except ingest_errors.DoesNotExist:
+                                    row_object = ingest_errors(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='invalid reference value')
+                                    row_object.save()
+                                continue
+                            # find whether given reference id exists in the database.
+                            try:
+                                row_object = ConnFragment.objects.get(original_id=reference)
+                                ConnFragment_id=row_object.id
+                            except ConnFragment.DoesNotExist:
+                                try:
+                                    row_object = ingest_errors.objects.get(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='missing reference in conn_fragment.csv')                                    
+                                except ingest_errors.DoesNotExist:
+                                    row_object = ingest_errors(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='missing reference in conn_fragment.csv')
+                                    row_object.save()
+                            # Add mapping between connection and reference. If reference not found skip that mapping
+                            if ConnFragment_id!=None:
+                                try:
+                                    row_object = ConndataFragmentRel.objects.get(Conndata_id=Connection_id,ConnFragment_id=ConnFragment_id)
+                                except ConndataFragmentRel.DoesNotExist:
+                                    row_object = ConndataFragmentRel(Conndata_id=Connection_id,ConnFragment_id=ConnFragment_id)
+                                    row_object.save()
+        
+    # ingests conn_fragment.csv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, ConnFragment tables
+    def connfragment_to_connfragment(self):
+        row_num=1           # starting header offset
+        row_object  = EvidenceFragmentRel.objects.last()
+        fragment_id = row_object.Fragment_id + 1                  # initialize from last fragment entry
+        for row in self.rows:
+            row_num=row_num+1 
+            # set reference_id
+            reference_id                   = None
+            location_in_reference          = None
+            quote                          = None
+            pmid_isbn                      = None
+            article_id                     = None
+            ref_id=row['RefID'].strip()
+            try:
+                reference_id = int(ref_id)
+            except Exception:
+                if len(ref_id)!=0:
+                    try:
+                        row_object = ingest_errors.objects.get(field='RefID',value=ref_id,file_row_num=row_num,filename='conn_fragment.csv')
+                    except ingest_errors.DoesNotExist:
+                        row_object = ingest_errors(field='RefID',value=ref_id,filename='conn_fragment.csv',file_row_num=row_num,comment='invalid reference value')
+                        row_object.save()
+                continue
+            try:
+                quote = row['Quote']
+                if len(quote) == 0:
+                    quote = None
+            except Exception:
+                quote = None
+            try:
+                location_in_reference = row['Location']
+                if len(location_in_reference) == 0:
+                    location_in_reference = None
+            except Exception:
+                location_in_reference = None
+            pmid_isbn_value=row['PMID/ISBN'].strip()
+            try:
+                pmid_isbn = int(pmid_isbn_value.replace('-',''))
+            except Exception:
+                try:
+                    row_object = ingest_errors.objects.get(field='PMID/ISBN',value=pmid_isbn_value,file_row_num=row_num,filename='conn_fragment.csv')
+                except ingest_errors.DoesNotExist:
+                    row_object = ingest_errors(field='PMID/ISBN',value=pmid_isbn_value,filename='conn_fragment.csv',file_row_num=row_num,comment='invalid pmid/isbn value')
+                    row_object.save()
+                pmid_isbn = None
+            if pmid_isbn == None:
+                article_id = None
+            else:
+                try:
+                    row_object = Article.objects.filter(pmid_isbn=pmid_isbn).order_by('id').first()
+                except Article.DoesNotExist:
+                    article_id = None
+                if row_object == None:
+                    article_id = None
+                else:
+                    article_id = row_object.id
+            if (article_id == None and pmid_isbn!= None):
+                    # write new pmid_isbn to article_not_found      
+                    try:
+                        row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn_value)
+                    except article_not_found.DoesNotExist:
+                        row_object = article_not_found(pmid_isbn=pmid_isbn_value)
+                        row_object.save()
+            # set Fragment
+            try:
+                row_object = ConnFragment.objects.get(original_id=reference_id)
+                continue
+            except ConnFragment.DoesNotExist:
+                row_object = ConnFragment(
+                    id                     = fragment_id,
+                    original_id            = reference_id,
+                    quote                  = quote,
+                    page_location          = location_in_reference,
+                    pmid_isbn              = pmid_isbn,
+                )
+                row_object.save()
+                fragment_id=row_object.id
+                row_object = Evidence()
+                Evidence_id =row_object.id
+                row_object.save()
+                row_object = EvidenceFragmentRel(
+                    Evidence_id = Evidence_id,
+                    Fragment_id = fragment_id
+                )
+                row_object.save()
+                row_object = ArticleEvidenceRel(
+                    Article_id  = article_id,
+                    Evidence_id = Evidence_id
+                )
+                row_object.save()
+                fragment_id = fragment_id + 1
+            # end set fragment
+            
+
 
     # ingests epdata.csv and populates ArticleEvidenceRel, ArticleSynonymRel, Epdata, EpdataEvidenceRel, Evidence, EvidenceEvidenceRel, EvidenceFragmentRel, EvidencePropertyTypeRel, Fragment, Property
     def epdata_to_epdata(self):
