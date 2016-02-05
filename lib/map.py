@@ -672,6 +672,9 @@ class Map:
             term = row['Term']
             if len(term) == 0:
                 term = None
+            resource = row['Resource']
+            if len(resource) == 0:
+                resource = None
             portal = row['Portal']
             if len(portal) == 0:
                 portal = None
@@ -700,6 +703,7 @@ class Map:
                 parent          = parent,
                 concept         = concept,
                 term            = term,
+                resource        = resource,
                 portal          = portal,
                 repository      = repository,
                 unique_id       = unique_id,

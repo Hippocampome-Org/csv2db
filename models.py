@@ -310,6 +310,7 @@ class Term(models.Model):
     parent          = models.CharField(max_length=400, null=True)
     concept         = models.CharField(max_length=400, null=True)
     term            = models.CharField(max_length=400, null=True)
+    resource        = models.CharField(max_length=200, null=True)
     portal          = models.CharField(max_length=200, null=True)
     repository      = models.CharField(max_length=200, null=True)
     unique_id       = models.CharField(max_length=400, null=True)
