@@ -672,6 +672,10 @@ class Map:
             term = row['Term']
             if len(term) == 0:
                 term = None
+            try:
+                resource_rank = int(row['Resource Rank'])
+            except ValueError:
+                resource_rank = None
             resource = row['Resource']
             if len(resource) == 0:
                 resource = None
@@ -703,6 +707,7 @@ class Map:
                 parent          = parent,
                 concept         = concept,
                 term            = term,
+                resource_rank   = resource_rank,
                 resource        = resource,
                 portal          = portal,
                 repository      = repository,
