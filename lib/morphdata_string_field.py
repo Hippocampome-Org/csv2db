@@ -75,7 +75,11 @@ class MorphdataStringField:
             if (row['Class Status'] == 'N' or row['Class Status'] == 'M') and neurites_layer_id != 'somata':
                 Type_id = int(row['unique ID'])
                 unvetted = 0
-                soma_pcl_flag=row['Soma PCL flag'].strip()
+                #soma_pcl_flag=row['Soma PCL flag'].strip()
+                try:
+                    soma_pcl_flag = int(row['Soma PCL flag'])
+                except ValueError:
+                    soma_pcl_flag = None
                 ax_de_pcl_flag=row['Ax/De PCL flag'].strip()
                 perisomatic_targeting_flag=row['Perisomatic targeting flag'].strip()
                 supplemental_pmids=row['Supplemental PMIDs'].strip()
