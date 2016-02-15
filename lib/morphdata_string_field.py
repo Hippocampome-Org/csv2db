@@ -77,14 +77,23 @@ class MorphdataStringField:
                 unvetted = 0
                 #soma_pcl_flag=row['Soma PCL flag'].strip()
                 try:
-                    soma_pcl_flag = int(row['Soma PCL flag'])
+                    soma_pcl_flag = int(row['Soma PCL flag'].strip())
                 except ValueError:
                     soma_pcl_flag = None
-                ax_de_pcl_flag=row['Ax/De PCL flag'].strip()
-                perisomatic_targeting_flag=row['Perisomatic targeting flag'].strip()
+                #ax_de_pcl_flag=row['Ax/De PCL flag'].strip()
+                try:
+                    ax_de_pcl_flag = int(row['Ax/De PCL flag'].strip())
+                except ValueError:
+                    ax_de_pcl_flag = None
+                #perisomatic_targeting_flag=row['Perisomatic targeting flag'].strip()
+                try:
+                    perisomatic_targeting_flag = int(row['Perisomatic targeting flag'].strip())
+                except ValueError:
+                    perisomatic_targeting_flag = None
                 supplemental_pmids=row['Supplemental PMIDs'].strip()
                 # process soma location information
-                if(neurites_layer_id=='dendrites'):
+                #if(neurites_layer_id=='dendrites'):
+                if(neurites_layer_id=='dendrites' or neurites_layer_id=='axons'):
                     soma_location = row['Soma location'].split('(',1)
                     subject       = 'somata'
                     predicate     = 'in'
