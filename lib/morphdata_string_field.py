@@ -71,30 +71,82 @@ class MorphdataPropertyRecords:
 class MorphdataStringField:
     def parse_and_save(row):
         try:
-            neurites_layer_id=row['Neurites \ Layer ID->'].strip()
-            if (row['Class Status'] == 'N' or row['Class Status'] == 'M') and neurites_layer_id != 'somata':
+            if (row['Class Status'] == 'N' or row['Class Status'] == 'M') and row['Neurites \ Layer ID->'] != 'somata':
                 Type_id = int(row['unique ID'])
                 unvetted = 0
-                #soma_pcl_flag=row['Soma PCL flag'].strip()
                 try:
                     soma_pcl_flag = int(row['Soma PCL flag'].strip())
                 except ValueError:
                     soma_pcl_flag = None
-                #ax_de_pcl_flag=row['Ax/De PCL flag'].strip()
                 try:
                     ax_de_pcl_flag = int(row['Ax/De PCL flag'].strip())
                 except ValueError:
                     ax_de_pcl_flag = None
-                #perisomatic_targeting_flag=row['Perisomatic targeting flag'].strip()
                 try:
                     perisomatic_targeting_flag = int(row['Perisomatic targeting flag'].strip())
                 except ValueError:
                     perisomatic_targeting_flag = None
-                supplemental_pmids=row['Supplemental PMIDs'].strip()
+                supplemental_pmids = row['Supplemental PMIDs'].strip()
                 # process soma location information
-                #if(neurites_layer_id=='dendrites'):
-                if(neurites_layer_id=='dendrites' or neurites_layer_id=='axons'):
-                    soma_location = row['Soma location'].split('(',1)
+                soma_location = row['Soma location'].split('(',1)
+                subject       = 'somata'
+                predicate     = 'in'
+                object        = row['Subregion'] + ':' + soma_location_map[soma_location[0].strip().lower()]
+                try:
+                    row_object  = Property.objects.get(subject=subject,predicate=predicate,object=object)
+                    Property_id = row_object.id
+                    # identify Evidence_id
+                    soma_location_remainder = soma_location[1]
+                    soma_location_remainder = re.sub(r'\.', r',', soma_location_remainder)
+                    original_id_comma_delimited_set = soma_location_remainder.split(')',1)
+                    original_ids = original_id_comma_delimited_set[0].split(',')
+                    for id in original_ids:
+                        try:
+                            original_id = int(id.strip())
+                        except Exception:
+                            continue
+                        try:
+                            row_object  = Fragment.objects.get(original_id=original_id)
+                            Fragment_id = row_object.id
+                            try:
+                                row_object  = EvidenceFragmentRel.objects.get(Fragment_id=Fragment_id)
+                                Evidence_id = row_object.Evidence_id
+                                # check for EvidencePropertyTypeRel match and add if new
+                                try:
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                except EvidencePropertyTypeRel.DoesNotExist:
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                    row_object.save()
+                                    # add ArticleSynonymRel record if unique
+                                    try:
+                                        row_object = ArticleEvidenceRel.objects.get(Evidence_id=Evidence_id)
+                                        Article_id = row_object.Article_id
+                                        try:
+                                            synonym_row_objects = SynonymTypeRel.objects.filter(Type_id=Type_id)
+                                            for synonym_row_object in synonym_row_objects:
+                                                Synonym_id = synonym_row_object.Synonym_id
+                                                try:
+                                                    row_object = ArticleSynonymRel.objects.get(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                except ArticleSynonymRel.DoesNotExist:
+                                                    row_object = ArticleSynonymRel(Article_id=Article_id,Synonym_id=Synonym_id)
+                                                    row_object.save()
+                                        except SynonymTypeRel.DoesNotExist:
+                                            Synonym_id = None
+                                    except ArticleEvidenceRel.DoesNotExist:
+                                        Article_id = None
+                                    #end add ArticleSynonymRel record if unique
+                            except EvidenceFragmentRel.DoesNotExist:
+                                Evidence_id = None
+                        except Fragment.DoesNotExist:
+                            Fragment_id = None
+                    #end for id in original_ids:
+
+                except Property.DoesNotExist:
+                    Property_id = None
+                soma_location_remainder = soma_location[1]
+                while '/' in soma_location_remainder:
+                    row_post_slash_split = soma_location_remainder.split('/',1)
+                    soma_location = row_post_slash_split[1].split('(',1)
                     subject       = 'somata'
                     predicate     = 'in'
                     object        = row['Subregion'] + ':' + soma_location_map[soma_location[0].strip().lower()]
@@ -146,73 +198,15 @@ class MorphdataStringField:
                             except Fragment.DoesNotExist:
                                 Fragment_id = None
                         #end for id in original_ids:
-
                     except Property.DoesNotExist:
                         Property_id = None
                     soma_location_remainder = soma_location[1]
-                    while '/' in soma_location_remainder:
-                        row_post_slash_split = soma_location_remainder.split('/',1)
-                        soma_location = row_post_slash_split[1].split('(',1)
-                        subject       = 'somata'
-                        predicate     = 'in'
-                        object        = row['Subregion'] + ':' + soma_location_map[soma_location[0].strip().lower()]
-                        try:
-                            row_object  = Property.objects.get(subject=subject,predicate=predicate,object=object)
-                            Property_id = row_object.id
-                            # identify Evidence_id
-                            soma_location_remainder = soma_location[1]
-                            soma_location_remainder = re.sub(r'\.', r',', soma_location_remainder)
-                            original_id_comma_delimited_set = soma_location_remainder.split(')',1)
-                            original_ids = original_id_comma_delimited_set[0].split(',')
-                            for id in original_ids:
-                                try:
-                                    original_id = int(id.strip())
-                                except Exception:
-                                    continue
-                                try:
-                                    row_object  = Fragment.objects.get(original_id=original_id)
-                                    Fragment_id = row_object.id
-                                    try:
-                                        row_object  = EvidenceFragmentRel.objects.get(Fragment_id=Fragment_id)
-                                        Evidence_id = row_object.Evidence_id
-                                        # check for EvidencePropertyTypeRel match and add if new
-                                        try:
-                                            row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
-                                        except EvidencePropertyTypeRel.DoesNotExist:
-                                            row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
-                                            row_object.save()
-                                            # add ArticleSynonymRel record if unique
-                                            try:
-                                                row_object = ArticleEvidenceRel.objects.get(Evidence_id=Evidence_id)
-                                                Article_id = row_object.Article_id
-                                                try:
-                                                    synonym_row_objects = SynonymTypeRel.objects.filter(Type_id=Type_id)
-                                                    for synonym_row_object in synonym_row_objects:
-                                                        Synonym_id = synonym_row_object.Synonym_id
-                                                        try:
-                                                            row_object = ArticleSynonymRel.objects.get(Article_id=Article_id,Synonym_id=Synonym_id)
-                                                        except ArticleSynonymRel.DoesNotExist:
-                                                            row_object = ArticleSynonymRel(Article_id=Article_id,Synonym_id=Synonym_id)
-                                                            row_object.save()
-                                                except SynonymTypeRel.DoesNotExist:
-                                                    Synonym_id = None
-                                            except ArticleEvidenceRel.DoesNotExist:
-                                                Article_id = None
-                                            #end add ArticleSynonymRel record if unique
-                                    except EvidenceFragmentRel.DoesNotExist:
-                                        Evidence_id = None
-                                except Fragment.DoesNotExist:
-                                    Fragment_id = None
-                            #end for id in original_ids:
-                        except Property.DoesNotExist:
-                            Property_id = None
-                        soma_location_remainder = soma_location[1]
-                    #end while '/' in soma_location_remainder:
+                #end while '/' in soma_location_remainder:
 
                 # process parcel column information
                 col = 0
                 for parcel in parcels:
-                    subject = neurites_layer_id
+                    subject = row['Neurites \ Layer ID->']
                     if '-' in row[cols[col]]:
                         predicate = 'not in'
                     else:
@@ -241,7 +235,7 @@ class MorphdataStringField:
                                         # check for EvidencePropertyTypeRel match and add if new
                                         try:
                                             row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
-                                        except EvidencePropertyTypeRel.DoesNotExist:                                    
+                                        except EvidencePropertyTypeRel.DoesNotExist:
                                             row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                             row_object.save()
                                             # add ArticleSynonymRel record if unique
