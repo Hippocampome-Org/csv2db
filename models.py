@@ -220,6 +220,7 @@ class EvidencePropertyTypeRel(models.Model):
     linking_quote             = models.TextField(null=True)
     interpretation_notes      = models.TextField(null=True)
     property_type_explanation = models.TextField(null=True)
+    pc_flag                   = models.NullBooleanField(null=True)
     soma_pcl_flag             = models.NullBooleanField(null=True)
     ax_de_pcl_flag            = models.IntegerField(unique=False,null=True)
     perisomatic_targeting_flag= models.IntegerField(unique=False,null=True)

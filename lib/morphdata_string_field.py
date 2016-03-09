@@ -75,6 +75,10 @@ class MorphdataStringField:
                 Type_id = int(row['unique ID'])
                 unvetted = 0
                 try:
+                    pc_flag = int(row['PC flag'].strip())
+                except ValueError:
+                    pc_flag = None
+                try:
                     soma_pcl_flag = int(row['Soma PCL flag'].strip())
                 except ValueError:
                     soma_pcl_flag = None
@@ -113,9 +117,9 @@ class MorphdataStringField:
                                 Evidence_id = row_object.Evidence_id
                                 # check for EvidencePropertyTypeRel match and add if new
                                 try:
-                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                    row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,pc_flag=pc_flag,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                 except EvidencePropertyTypeRel.DoesNotExist:
-                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                    row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,pc_flag=pc_flag,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                     row_object.save()
                                     # add ArticleSynonymRel record if unique
                                     try:
@@ -171,9 +175,9 @@ class MorphdataStringField:
                                     Evidence_id = row_object.Evidence_id
                                     # check for EvidencePropertyTypeRel match and add if new
                                     try:
-                                        row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                        row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,pc_flag=pc_flag,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                     except EvidencePropertyTypeRel.DoesNotExist:
-                                        row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                        row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,pc_flag=pc_flag,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                         row_object.save()
                                         # add ArticleSynonymRel record if unique
                                         try:
@@ -234,9 +238,9 @@ class MorphdataStringField:
                                         Evidence_id = row_object.Evidence_id
                                         # check for EvidencePropertyTypeRel match and add if new
                                         try:
-                                            row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                            row_object = EvidencePropertyTypeRel.objects.get(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,pc_flag=pc_flag,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                         except EvidencePropertyTypeRel.DoesNotExist:
-                                            row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
+                                            row_object = EvidencePropertyTypeRel(Evidence_id=Evidence_id,Property_id=Property_id,Type_id=Type_id,unvetted=unvetted,pc_flag=pc_flag,soma_pcl_flag=soma_pcl_flag,ax_de_pcl_flag=ax_de_pcl_flag,perisomatic_targeting_flag=perisomatic_targeting_flag,supplemental_pmids=supplemental_pmids)
                                             row_object.save()
                                             # add ArticleSynonymRel record if unique
                                             try:
