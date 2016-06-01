@@ -523,8 +523,8 @@ class Map:
                 row_object.save()
                 fragment_id=row_object.id
                 row_object = Evidence()
-                Evidence_id =row_object.id
                 row_object.save()
+                Evidence_id =row_object.id
                 row_object = EvidenceFragmentRel(
                     Evidence_id = Evidence_id,
                     Fragment_id = fragment_id
