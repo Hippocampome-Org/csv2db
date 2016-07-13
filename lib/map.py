@@ -12,6 +12,7 @@ from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
 from .markerdata_string_field import MarkerdataStringField
 from .morphdata_string_field import MorphdataPropertyRecords, MorphdataStringField
+from .fpdata_string_field import FiringPatternStringField
 
 class Map:
 
@@ -135,23 +136,31 @@ class Map:
             elif order == '8':
                 Map.attachment_to_attachment(self)
             elif order == '9':
-                Map.fragment_to_fragment(self)
+                FiringPatternStringField.attachment_fp_to_attachment_fp(self)
             elif order == '10':
                 Map.fragment_to_fragment(self)
             elif order == '11':
                 Map.fragment_to_fragment(self)
             elif order == '12':
-                Map.markerdata_to_markerdata(self)
+                Map.fragment_to_fragment(self)
             elif order == '13':
-                Map.epdata_to_epdata(self)
+                FiringPatternStringField.fp_fragment_to_fp_fragment(self)
             elif order == '14':
-                Map.morphdata_to_morphdata(self)
+                Map.markerdata_to_markerdata(self)
             elif order == '15':
-                Map.connfragment_to_connfragment(self)
+                Map.epdata_to_epdata(self)
             elif order == '16':
-                Map.conndata_to_conndata(self)
+                Map.morphdata_to_morphdata(self)
             elif order == '17':
-                Map.term_to_term(self)
+                FiringPatternStringField.definition_to_definition(self)
+            elif order == '18':
+                FiringPatternStringField.parameters_to_parameters(self)
+            elif order == '19':
+                Map.connfragment_to_connfragment(self)
+            elif order == '20':
+                Map.conndata_to_conndata(self)
+            elif order == '21':
+                Map.term_to_term(self)  
             else:
                 pass
             try:

@@ -18,7 +18,8 @@ class EnumAttachmentType(EnumField, models.CharField):
     def __init__(self, *args, choices=[], **kwargs):
         values = [('ephys_figure',  'Ephys_figure'),  ('ephys_table',  'Ephys_table'),
                   ('marker_figure', 'Marker_figure'), ('marker_table', 'Marker_table'),
-                  ('morph_figure',  'Morph_figure'),  ('morph_table',  'Morph_table')]
+                  ('morph_figure',  'Morph_figure'),  ('morph_table',  'Morph_table'),
+                  ('fp_figure',  'Fp_figure'),  ('fp_table',  'Fp_table')]
         super(EnumAttachmentType, self).__init__(*args, choices=values, **kwargs)
 
 class EnumEvidenceEvidenceType(EnumField, models.CharField):
@@ -50,6 +51,12 @@ class EnumTypeTypeConnectionStatus(EnumField, models.CharField):
     def __init__(self, *args, choices=[], **kwargs):
         values = [('positive', 'Positive'), ('negative', 'Negative')]
         super(EnumTypeTypeConnectionStatus, self).__init__(*args, choices=values, **kwargs)
+
+# Enum values for pattern_definition field
+class EnumFiringPatternDefinitionParameter(EnumField, models.CharField):
+    def __init__(self, *args, choices=[], **kwargs):
+        values = [('definition', 'Definition'), ('parameter', 'Parameter')]
+        super(EnumFiringPatternDefinitionParameter, self).__init__(*args, choices=values, **kwargs)
 
 class Article(models.Model):
     id             = models.AutoField(primary_key=True)
@@ -228,6 +235,116 @@ class EvidencePropertyTypeRel(models.Model):
     class Meta:
         db_table = 'EvidencePropertyTypeRel'
 
+
+# table to store firing definition and parameter
+class FiringPattern(models.Model):
+    id                                  = models.AutoField(primary_key=True)
+    overall_fp                          = models.CharField(max_length=64, null=True)
+    delay_ms                            = models.CharField(max_length=64, null=True)
+    pfs_ms                              = models.CharField(max_length=64, null=True)
+    swa_mv                              = models.CharField(max_length=64, null=True)
+    nisi                                = models.CharField(max_length=64, null=True)
+    isiav_ms                            = models.CharField(max_length=64, null=True)
+    sd_ms                               = models.CharField(max_length=64, null=True)
+    max_isi_ms                          = models.CharField(max_length=64, null=True)
+    min_isi_ms                          = models.CharField(max_length=64, null=True)
+    first_isi_ms                        = models.CharField(max_length=64, null=True)
+    isiav1_2_ms                         = models.CharField(max_length=64, null=True)
+    isiav1_3_ms                         = models.CharField(max_length=64, null=True)
+    isiav1_4_ms                         = models.CharField(max_length=64, null=True)
+    last_isi_ms                         = models.CharField(max_length=64, null=True)
+    isiavn_n_1_ms                       = models.CharField(max_length=64, null=True)
+    isiavn_n_2_ms                       = models.CharField(max_length=64, null=True)
+    isiavn_n_3_ms                       = models.CharField(max_length=64, null=True)
+    maxisi_minisi                       = models.CharField(max_length=64, null=True)
+    maxisin_isin_m1                     = models.CharField(max_length=64, null=True)  
+    maxisin_isin_p1                     = models.CharField(max_length=64, null=True) 
+    ai                                  = models.CharField(max_length=64, null=True)
+    rdmax                               = models.CharField(max_length=64, null=True)
+    df                                  = models.CharField(max_length=64, null=True)
+    sf                                  = models.CharField(max_length=64, null=True)
+    tmax_scaled                         = models.CharField(max_length=64, null=True)
+    isimax_scaled                       = models.CharField(max_length=64, null=True)
+    isiav_scaled                        = models.CharField(max_length=64, null=True)
+    sd_scaled                           = models.CharField(max_length=64, null=True)
+    slope                               = models.CharField(max_length=64, null=True)
+    intercept                           = models.CharField(max_length=64, null=True)
+    slope1                              = models.CharField(max_length=64, null=True)
+    intercept1                          = models.CharField(max_length=64, null=True)
+    css_yc1                             = models.CharField(max_length=64, null=True)
+    xc1                                 = models.CharField(max_length=64, null=True)
+    slope2                              = models.CharField(max_length=64, null=True)
+    intercept2                          = models.CharField(max_length=64, null=True)
+    slope3                              = models.CharField(max_length=64, null=True)
+    intercept3                          = models.CharField(max_length=64, null=True)
+    xc2                                 = models.CharField(max_length=64, null=True)
+    yc2                                 = models.CharField(max_length=64, null=True)   
+    f1_2                                = models.CharField(max_length=64, null=True)
+    f1_2crit                            = models.CharField(max_length=64, null=True)
+    f2_3                                = models.CharField(max_length=64, null=True)
+    f2_3crit                            = models.CharField(max_length=64, null=True)
+    f3_4                                = models.CharField(max_length=64, null=True)
+    f3_4crit                            = models.CharField(max_length=64, null=True)
+    p1_2                                = models.CharField(max_length=64, null=True)
+    p2_3                                = models.CharField(max_length=64, null=True)
+    p3_4                                = models.CharField(max_length=64, null=True)
+    p1_2uv                              = models.CharField(max_length=64, null=True)
+    p2_3uv                              = models.CharField(max_length=64, null=True)
+    p3_4uv                              = models.CharField(max_length=64, null=True)
+    isii_isii_m1                        = models.CharField(max_length=64, null=True)
+    i                                   = models.CharField(max_length=64, null=True)
+    isiav_i_n_isi1_i_m1                 = models.CharField(max_length=64, null=True)
+    maxisij_isij_m1                     = models.CharField(max_length=64, null=True)
+    maxisij_isij_p1                     = models.CharField(max_length=64, null=True)
+    nisi_c                              = models.CharField(max_length=64, null=True)
+    isiav_ms_c                          = models.CharField(max_length=64, null=True)
+    maxisi_ms_c                         = models.CharField(max_length=64, null=True)
+    minisi_ms_c                         = models.CharField(max_length=64, null=True)
+    first_isi_ms_c                      = models.CharField(max_length=64, null=True)
+    tmax_scaled_c                       = models.CharField(max_length=64, null=True)
+    isimax_scaled_c                     = models.CharField(max_length=64, null=True)
+    isiav_scaled_c                      = models.CharField(max_length=64, null=True)
+    sd_scaled_c                         = models.CharField(max_length=64, null=True)
+    slope_c                             = models.CharField(max_length=64, null=True)
+    intercept_c                         = models.CharField(max_length=64, null=True)
+    slope1_c                            = models.CharField(max_length=64, null=True)
+    intercept1_c                        = models.CharField(max_length=64, null=True)
+    css_yc1_c                           = models.CharField(max_length=64, null=True)
+    xc1_c                               = models.CharField(max_length=64, null=True)
+    slope2_c                            = models.CharField(max_length=64, null=True)
+    intercept2_c                        = models.CharField(max_length=64, null=True)
+    slope3_c                            = models.CharField(max_length=64, null=True)
+    intercept3_c                        = models.CharField(max_length=64, null=True)
+    xc2_c                               = models.CharField(max_length=64, null=True)
+    yc2_c                               = models.CharField(max_length=64, null=True)
+    f1_2_c                              = models.CharField(max_length=64, null=True)
+    f1_2crit_c                          = models.CharField(max_length=64, null=True)
+    f2_3_c                              = models.CharField(max_length=64, null=True)
+    f2_3crit_c                          = models.CharField(max_length=64, null=True)
+    f3_4_c                              = models.CharField(max_length=64, null=True)
+    f3_4crit_c                          = models.CharField(max_length=64, null=True)
+    p1_2_c                              = models.CharField(max_length=64, null=True)
+    p2_3_c                              = models.CharField(max_length=64, null=True)
+    p3_4_c                              = models.CharField(max_length=64, null=True)
+    p1_2uv_c                            = models.CharField(max_length=64, null=True)
+    p2_3uv_c                            = models.CharField(max_length=64, null=True)
+    p3_4uv_c                            = models.CharField(max_length=64, null=True)
+    definition_parameter                = EnumFiringPatternDefinitionParameter(max_length=10, null=True) # enum('definition','parameter') 
+    class Meta:
+        db_table = 'FiringPattern'
+
+# firing pattern parameter mapping to evidence
+class FiringPatternRel(models.Model):
+    id                  = models.AutoField(primary_key=True)
+    FiringPattern_id    = models.IntegerField(db_index=True, unique=False, null=True)
+    Type_id             = models.IntegerField(db_index=True, unique=False, null=True)
+    figure_no           = models.CharField(max_length=64, null=True)
+    original_id         = models.BigIntegerField(null=True)
+    istim_pa            = models.CharField(max_length=64, null=True)
+    tstim_ms            = models.CharField(max_length=64, null=True)
+    class Meta:
+        db_table = 'FiringPatternRel'
+
 class Fragment(models.Model):
     id                     = models.AutoField(primary_key=True)
     original_id            = models.BigIntegerField(null=True)
@@ -346,6 +463,4 @@ class TypeTypeRel(models.Model):
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
         db_table = 'TypeTypeRel'
-
-
 
