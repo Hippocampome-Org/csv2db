@@ -81,12 +81,18 @@ class MarkerdataStringField:
                     conflict_note = 'positive'
                 elif token_sans_comment == 'n':
                     conflict_note = 'negative'
+                elif token_sans_comment == 'a':
+                    conflict_note = 'unresolved inferential conflict'
+                elif token_sans_comment == 'b':
+                    conflict_note = 'species/protocol inferential conflict'
                 elif token_sans_comment == '1':
                     conflict_note = 'subtypes'
                 elif token_sans_comment == '2':
                     conflict_note = 'unresolved'
                 elif token_sans_comment == '3':
-                    conflict_note = 'species/protocol/subcellular expression differences'
+                    conflict_note = 'species/protocol differences'
+                elif token_sans_comment == '4':
+                    conflict_note = 'subcellular expression differences'
                 elif token_sans_comment == 'pi':
                     conflict_note = 'positive inference'
                 elif token_sans_comment == 'ni':
