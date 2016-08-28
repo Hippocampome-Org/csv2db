@@ -331,10 +331,14 @@ class FiringPatternStringField:
     # firing pattern definition
     def definition_to_definition(self):
         cnt=0;
-        row_num=4
+        row_num=1
+        #load definition name of parameters
+        FiringPatternStringField.firing_pattern_definition_parameter(None,'names')
         for row in self.rows:
             try:
-                if(cnt>1):
+                if(cnt<4):
+                    FiringPatternStringField.firing_pattern_definition_parameter(row,'none')
+                else:
                     FiringPatternStringField.firing_pattern_definition_parameter(row,'definition')
                 cnt=cnt+1
                 row_num=row_num+1
@@ -348,188 +352,116 @@ class FiringPatternStringField:
     
     # helper function for importing firing pattern definitons and parameters 
     def firing_pattern_definition_parameter(row,parameter_value):
-        overall_fp                          =row['OVERALL FIRING PATTERN']
-        delay_ms                            =row['Delay (ms)']
-        pfs_ms                              =row['PFS(ms)']
-        swa_mv                              =row['SWA (mV)']
-        nisi                                =row['NISI']
-        isiav_ms                            =row['ISIAV (ms)']
-        sd_ms                               =row['SD (ms)']
-        max_isi_ms                          =row['Max ISI (ms)']
-        min_isi_ms                          =row['Min ISI (ms)']
-        first_isi_ms                        =row['1st ISI (ms)']
-        isiav1_2_ms                         =row['ISIAV1-2  (ms)']
-        isiav1_3_ms                         =row['ISIAV1-3 (ms)']
-        isiav1_4_ms                         =row['ISIAV1-4 (ms)']
-        last_isi_ms                         =row['Last ISI (ms)']
-        isiavn_n_1_ms                       =row['ISIAVn-n-1 (ms)']
-        isiavn_n_2_ms                       =row['ISIAVn-n-2 (ms)']
-        isiavn_n_3_ms                       =row['ISIAVn-n-3 (ms)']
-        maxisi_minisi                       =row['MaxISI/MinISI']
-        maxisin_isin_m1                     =row['MaxISIn /ISIn-1']
-        maxisin_isin_p1                     =row['MaxISIn /ISIn+1']
-        ai                                  =row['AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2']
-        rdmax                               =row['RDmax    (RDi=|ISIi-ISIAV|/ISIAV )']
-        df                                  =row['DF=(Delay-2 ISIAV1-2)/Delay']
-        sf                                  =row['SF=(PSF-2 ISIAVn-n-1)/PSF']
-        tmax_scaled                         =row['Tmax(scaled)']
-        isimax_scaled                       =row['ISImax(scaled)']
-        isiav_scaled                        =row['ISIav (scaled)']
-        sd_scaled                           =row['SD(scaled)']
-        slope                               =row['Slope']
-        intercept                           =row['Intercept']
-        slope1                              =row['Slope1']
-        intercept1                          =row['Intercept1']
-        css_yc1                             =row['Css (Yc1)']
-        xc1                                 =row['Xc1']
-        slope2                              =row['Slope2']
-        intercept2                          =row['Intercept2']
-        slope3                              =row['Slope3']
-        intercept3                          =row['Intercept3']
-        xc2                                 =row['Xc2']
-        yc2                                 =row['Yc2']
-        f1_2                                =row['F1-2']
-        f1_2crit                            =row['F1-2crit']
-        f2_3                                =row['F2-3']
-        f2_3crit                            =row['F2-3crit']
-        f3_4                                =row['F3-4']
-        f3_4crit                            =row['F3-4crit']
-        p1_2                                =row['P1-2']
-        p2_3                                =row['P2-3']
-        p3_4                                =row['P3-4']
-        p1_2uv                              =row['P1-2uv']
-        p2_3uv                              =row['P2-3uv']
-        p3_4uv                              =row['P3-4uv']
-        isii_isii_m1                        =row['ISIi/ISIi-1']
-        i                                   =row['i']
-        isiav_i_n_isi1_i_m1                 =row['ISIav(i,n)/ISI1,i-1']
-        maxisij_isij_m1                     =row['MaxISIj /ISIj-1']
-        maxisij_isij_p1                     =row['MaxISIj /ISIj+1']
-        nisi_c                              =row['NISI_c']
-        isiav_ms_c                          =row['ISIAV (ms)_c']
-        maxisi_ms_c                         =row['Max ISI (ms)_c']
-        minisi_ms_c                         =row['Min ISI (ms)_c']
-        first_isi_ms_c                      =row['1st ISI (ms)_c']
-        tmax_scaled_c                       =row['Tmax(scaled) _c']
-        isimax_scaled_c                     =row['ISImax(scaled)_c']
-        isiav_scaled_c                      =row['ISIav (scaled) _c']
-        sd_scaled_c                         =row['SD(scaled) _c']
-        slope_c                             =row['Slope_c']
-        intercept_c                         =row['Intercept_c']
-        slope1_c                            =row['Slope1_c']
-        intercept1_c                        =row['Intercept1_c']
-        css_yc1_c                           =row['Css (Yc1) _c']
-        xc1_c                               =row['Xc1_c']
-        slope2_c                            =row['Slope2_c']
-        intercept2_c                        =row['Intercept2_c']
-        slope3_c                            =row['Slope3_c']
-        intercept3_c                        =row['Intercept3_c']
-        xc2_c                               =row['Xc2_c']
-        yc2_c                               =row['Yc2_c']
-        f1_2_c                              =row['F1-2_c']
-        f1_2crit_c                          =row['F1-2crit_c']
-        f2_3_c                              =row['F2-3_c']
-        f2_3crit_c                          =row['F2-3crit_c']
-        f3_4_c                              =row['F3-4_c']
-        f3_4crit_c                          =row['F3-4crit_c']
-        p1_2_c                              =row['P1-2_c']
-        p2_3_c                              =row['P2-3_c']
-        p3_4_c                              =row['P3-4_c']
-        p1_2uv_c                            =row['P1-2uv_c']
-        p2_3uv_c                            =row['P2-3uv_c']
-        p3_4uv_c                            =row['P3-4uv_c']
+        firingParameters=["Delay (ms)","PFS(ms)","SWA (mV)","NISI"," ISIAV (ms)","SD (ms)","Max ISI (ms)","Min ISI (ms)","1st ISI (ms)","ISIAV1-2  (ms)","ISIAV1-3 (ms)","ISIAV1-4 (ms)","Last ISI (ms)","ISIAVn-n-1 (ms)","ISIAVn-n-2 (ms)","ISIAVn-n-3 (ms)","MaxISI/MinISI","MaxISIn /ISIn-1","MaxISIn /ISIn+1","AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2","RDmax    (RDi=|ISIi-ISIAV|/ISIAV )","DF=(Delay-2 ISIAV1-2)/Delay","SF=(PSF-2 ISIAVn-n-1)/PSF","Tmax(scaled)","ISImax(scaled)","ISIav (scaled)","SD(scaled)","Slope","Intercept","Slope1","Intercept1","Css (Yc1)","Xc1","Slope2","Intercept2","Slope3","Intercept3","Xc2","Yc2","F1-2","F1-2crit","F2-3","F2-3crit","F3-4","F3-4crit","P1-2","P2-3","P3-4","P1-2uv","P2-3uv","P3-4uv","ISIi/ISIi-1","i","ISIav(i,n)/ISI1,i-1","MaxISIj /ISIj-1","MaxISIj /ISIj+1","NISI_c"," ISIAV (ms)_c","Max ISI (ms)_c","Min ISI (ms)_c","1st ISI (ms)_c","Tmax(scaled) _c","ISImax(scaled)_c","ISIav (scaled) _c","SD(scaled) _c","Slope_c","Intercept_c","no value_c","Intercept1_c","Css (Yc1) _c","Xc1_c","Slope2_c","Intercept2_c","Slope3_c","Intercept3_c","Xc2_c","Yc2_c","F1-2_c","F1-2crit_c","F2-3_c","F2-3crit_c","F3-4_c","F3-4crit_c","P1-2_c","P2-3_c","P3-4_c","P1-2uv_c","P2-3uv_c","P3-4uv_c"]
+        firingDefinitions=["Delay ","PFS","SWA ","NISI"," ISIAV ","SD ","Max ISI ","Min ISI ","1st ISI ","ISIAV1-2  ","ISIAV1-3 ","ISIAV1-4 ","Last ISI ","ISIAVn-n-1 ","ISIAVn-n-2 ","ISIAVn-n-3 ","MaxISI/MinISI","MaxISIn /ISIn-1","MaxISIn /ISIn+1","AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2","RDmax    (RDi=|ISIi-ISIAV|/ISIAV )","DF=(Delay-2 ISIAV1-2)/Delay","SF=(PSF-2 ISIAVn-n-1)/PSF","Tmax(scaled)","ISImax(scaled)","ISIav (scaled)","SD(scaled)","Slope","Intercept","Slope1","Intercept1","Css (Yc1)","Xc1","Slope2","Intercept2","Slope3","Intercept3","Xc2","Yc2","F1-2","F1-2crit","F2-3","F2-3crit","F3-4","F3-4crit","P1-2","P2-3","P3-4","P1-2uv","P2-3uv","P3-4uv","ISIi/ISIi-1","i","ISIav(i,n)/ISI1,i-1","MaxISIj /ISIj-1","MaxISIj /ISIj+1","NISI_c"," ISIAV (ms)_c","Max ISI (ms)_c","Min ISI (ms)_c","1st ISI (ms)_c","Tmax(scaled) _c","ISImax(scaled)_c","ISIav (scaled) _c","SD(scaled) _c","Slope_c","Intercept_c","Slope1_c","Intercept1_c","Css (Yc1) _c","Xc1_c","Slope2_c","Intercept2_c","Slope3_c","Intercept3_c","Xc2_c","Yc2_c","F1-2_c","F1-2crit_c","F2-3_c","F2-3crit_c","F3-4_c","F3-4crit_c","P1-2_c","P2-3_c","P3-4_c","P1-2uv_c","P2-3uv_c","P3-4uv_c"]
+        header=[None]*len(firingDefinitions)
+        result=[None]*len(firingDefinitions)
+        if(parameter_value=='definition' or parameter_value=='none' or parameter_value=='parameter'):
+            overall_fp=row['OVERALL FIRING PATTERN']
+            if(parameter_value=='definition' or parameter_value=='none'):
+                header=firingDefinitions
+            else:
+                header=firingParameters
+            for index in range(0,len(header)):
+                result[index]=row[header[index]]
+        else:
+            overall_fp="Parameter Name"
+            parameter_value='none'
+            for index in range(0,len(header)):
+                result[index]=firingDefinitions[index]
+                
         row_object = FiringPattern(
-            overall_fp             =              overall_fp,            
-            delay_ms               =              delay_ms,              
-            pfs_ms                 =              pfs_ms,                
-            swa_mv                 =              swa_mv,                
-            nisi                   =              nisi,                  
-            isiav_ms               =              isiav_ms,              
-            sd_ms                  =              sd_ms,                 
-            max_isi_ms             =              max_isi_ms,            
-            min_isi_ms             =              min_isi_ms,            
-            first_isi_ms           =              first_isi_ms,          
-            isiav1_2_ms            =              isiav1_2_ms,           
-            isiav1_3_ms            =              isiav1_3_ms,           
-            isiav1_4_ms            =              isiav1_4_ms,           
-            last_isi_ms            =              last_isi_ms,           
-            isiavn_n_1_ms          =              isiavn_n_1_ms,         
-            isiavn_n_2_ms          =              isiavn_n_2_ms,         
-            isiavn_n_3_ms          =              isiavn_n_3_ms,         
-            maxisi_minisi          =              maxisi_minisi,         
-            maxisin_isin_m1        =              maxisin_isin_m1,       
-            maxisin_isin_p1        =              maxisin_isin_p1,       
-            ai                     =              ai,                    
-            rdmax                  =              rdmax,                 
-            df                     =              df,                    
-            sf                     =              sf,                    
-            tmax_scaled            =              tmax_scaled,           
-            isimax_scaled          =              isimax_scaled,         
-            isiav_scaled           =              isiav_scaled,          
-            sd_scaled              =              sd_scaled,             
-            slope                  =              slope,                 
-            intercept              =              intercept,             
-            slope1                 =              slope1,                
-            intercept1             =              intercept1,            
-            css_yc1                =              css_yc1,               
-            xc1                    =              xc1,                   
-            slope2                 =              slope2,                
-            intercept2             =              intercept2,            
-            slope3                 =              slope3,                
-            intercept3             =              intercept3,            
-            xc2                    =              xc2,                   
-            yc2                    =              yc2,                   
-            f1_2                   =              f1_2,                  
-            f1_2crit               =              f1_2crit,              
-            f2_3                   =              f2_3,                  
-            f2_3crit               =              f2_3crit,              
-            f3_4                   =              f3_4,                  
-            f3_4crit               =              f3_4crit,              
-            p1_2                   =              p1_2,                  
-            p2_3                   =              p2_3,                  
-            p3_4                   =              p3_4,                  
-            p1_2uv                 =              p1_2uv,                
-            p2_3uv                 =              p2_3uv,                
-            p3_4uv                 =              p3_4uv,               
-            isii_isii_m1           =              isii_isii_m1,          
-            i                      =              i,                     
-            isiav_i_n_isi1_i_m1    =              isiav_i_n_isi1_i_m1,   
-            maxisij_isij_m1        =              maxisij_isij_m1,       
-            maxisij_isij_p1        =              maxisij_isij_p1,       
-            nisi_c                 =              nisi_c,                
-            isiav_ms_c             =              isiav_ms_c,            
-            maxisi_ms_c            =              maxisi_ms_c,           
-            minisi_ms_c            =              minisi_ms_c,           
-            first_isi_ms_c         =              first_isi_ms_c,        
-            tmax_scaled_c          =              tmax_scaled_c,         
-            isimax_scaled_c        =              isimax_scaled_c,       
-            isiav_scaled_c         =              isiav_scaled_c,        
-            sd_scaled_c            =              sd_scaled_c,           
-            slope_c                =              slope_c,               
-            intercept_c            =              intercept_c,           
-            slope1_c               =              slope1_c,              
-            intercept1_c           =              intercept1_c,          
-            css_yc1_c              =              css_yc1_c,             
-            xc1_c                  =              xc1_c,                 
-            slope2_c               =              slope2_c,              
-            intercept2_c           =              intercept2_c,          
-            slope3_c               =              slope3_c,              
-            intercept3_c           =              intercept3_c,          
-            xc2_c                  =              xc2_c,                 
-            yc2_c                  =              yc2_c,                 
-            f1_2_c                 =              f1_2_c,                
-            f1_2crit_c             =              f1_2crit_c,            
-            f2_3_c                 =              f2_3_c,                
-            f2_3crit_c             =              f2_3crit_c,            
-            f3_4_c                 =              f3_4_c,                
-            f3_4crit_c             =              f3_4crit_c,            
-            p1_2_c                 =              p1_2_c,                
-            p2_3_c                 =              p2_3_c,                
-            p3_4_c                 =              p3_4_c,                
-            p1_2uv_c               =              p1_2uv_c,              
-            p2_3uv_c               =              p2_3uv_c,              
-            p3_4uv_c               =              p3_4uv_c,              
-            definition_parameter   =              parameter_value  
+            overall_fp                          =overall_fp,
+            delay_ms                            =result[0],
+            pfs_ms                              =result[1],
+            swa_mv                              =result[2],
+            nisi                                =result[3],
+            isiav_ms                            =result[4],
+            sd_ms                               =result[5],
+            max_isi_ms                          =result[6],
+            min_isi_ms                          =result[7],
+            first_isi_ms                        =result[8],
+            isiav1_2_ms                         =result[9],
+            isiav1_3_ms                         =result[10],
+            isiav1_4_ms                         =result[11],
+            last_isi_ms                         =result[12],
+            isiavn_n_1_ms                       =result[13],
+            isiavn_n_2_ms                       =result[14],
+            isiavn_n_3_ms                       =result[15],
+            maxisi_minisi                       =result[16],
+            maxisin_isin_m1                     =result[17],
+            maxisin_isin_p1                     =result[18],
+            ai                                  =result[19],
+            rdmax                               =result[20],
+            df                                  =result[21],
+            sf                                  =result[22],
+            tmax_scaled                         =result[23],
+            isimax_scaled                       =result[24],
+            isiav_scaled                        =result[25],
+            sd_scaled                           =result[26],
+            slope                               =result[27],
+            intercept                           =result[28],
+            slope1                              =result[29],
+            intercept1                          =result[30],
+            css_yc1                             =result[31],
+            xc1                                 =result[32],
+            slope2                              =result[33],
+            intercept2                          =result[34],
+            slope3                              =result[35],
+            intercept3                          =result[36],
+            xc2                                 =result[37],
+            yc2                                 =result[38],
+            f1_2                                =result[39],
+            f1_2crit                            =result[40],
+            f2_3                                =result[41],
+            f2_3crit                            =result[42],
+            f3_4                                =result[43],
+            f3_4crit                            =result[44],
+            p1_2                                =result[45],
+            p2_3                                =result[46],
+            p3_4                                =result[47],
+            p1_2uv                              =result[48],
+            p2_3uv                              =result[49],
+            p3_4uv                              =result[50],
+            isii_isii_m1                        =result[51],
+            i                                   =result[52],
+            isiav_i_n_isi1_i_m1                 =result[53],
+            maxisij_isij_m1                     =result[54],
+            maxisij_isij_p1                     =result[55],
+            nisi_c                              =result[56],
+            isiav_ms_c                          =result[57],
+            maxisi_ms_c                         =result[58],
+            minisi_ms_c                         =result[59],
+            first_isi_ms_c                      =result[60],
+            tmax_scaled_c                       =result[61],
+            isimax_scaled_c                     =result[62],
+            isiav_scaled_c                      =result[63],
+            sd_scaled_c                         =result[64],
+            slope_c                             =result[65],
+            intercept_c                         =result[66],
+            slope1_c                            =result[67],
+            intercept1_c                        =result[68],
+            css_yc1_c                           =result[69],
+            xc1_c                               =result[70],
+            slope2_c                            =result[71],
+            intercept2_c                        =result[72],
+            slope3_c                            =result[73],
+            intercept3_c                        =result[74],
+            xc2_c                               =result[75],
+            yc2_c                               =result[76],
+            f1_2_c                              =result[77],
+            f1_2crit_c                          =result[78],
+            f2_3_c                              =result[79],
+            f2_3crit_c                          =result[80],
+            f3_4_c                              =result[81],
+            f3_4crit_c                          =result[82],
+            p1_2_c                              =result[83],
+            p2_3_c                              =result[84],
+            p3_4_c                              =result[85],
+            p1_2uv_c                            =result[86],
+            p2_3uv_c                            =result[87],
+            p3_4uv_c                            =result[88],         
+            definition_parameter                =parameter_value  
         )
         row_object.save()
         firing_pattern_id=row_object.id

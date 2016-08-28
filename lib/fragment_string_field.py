@@ -17,6 +17,10 @@ class FragmentStringField:
         article_id                     = None
         attachment                     = None
         attachment_type                = None
+        species_tag                    = None
+        species_descriptor             = None
+        age_weight                     = None
+        protocol                       = None
         # set reference_id
         try:
             reference_id = int(row['ReferenceID'])
@@ -220,8 +224,43 @@ class FragmentStringField:
             except Exception:
                 linking_page_location = None
         #end if ephys file
+        # Morph fragment data
 
+        if saw_ephys_parameters_extracted == 0 and saw_protocol_reference==0:
         # write fragment record(s)
+            # set interpretation_notes
+            try:
+                interpretation_notes = row['Interpretation notes'].strip()
+                if len(interpretation_notes) == 0:
+                    interpretation_notes = None
+            except Exception:
+                interpretation_notes = None  
+            try:
+                species_tag = row['species_tag'].strip()
+                if len(species_tag) == 0:
+                    species_tag = None
+            except Exception:
+                species_tag = None
+            # set species_descriptor
+            try:
+                species_descriptor = row['species_descriptor'].strip()
+                if len(species_descriptor) == 0:
+                    species_descriptor = None
+            except Exception:
+                species_descriptor = None
+            try:
+                age_weight = row['age_weight'].strip()
+                if len(age_weight) == 0:
+                    age_weight = None
+            except Exception:
+                age_weight = None
+            # set protocol
+            try:
+                protocol = row['protocol'].strip()
+                if len(protocol) == 0:
+                    protocol = None
+            except Exception:
+                protocol = None
         if reference_id != None:
             # Fragment type = type
             row_object = Fragment(
@@ -241,9 +280,19 @@ class FragmentStringField:
                 linking_pmid_isbn      = linking_pmid_isbn,
                 linking_pmid_isbn_page = linking_pmid_isbn_page,
                 linking_quote          = linking_quote,
-                linking_page_location  = linking_page_location
+                linking_page_location  = linking_page_location,
+                species_tag            = species_tag,
+                species_descriptor     = species_descriptor,
+                age_weight             = age_weight,
+                protocol               = protocol
+
             )
-            row_object.save()
+            try:
+                row_object.save()
+            except Exception as e:
+                print(e)
+                print(protocol)
+
             row_object = Evidence()
             row_object.save()
             row_object = EvidenceFragmentRel(
