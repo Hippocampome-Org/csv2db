@@ -294,16 +294,16 @@ class FiringPatternStringField:
                 type_id=row['Uniq ID']
                 type_id=int(type_id.replace('-',''))
                 fig_no=row['Figure number']
-                if(row['Reference ID'].strip()):
-                    reference_id = row['Reference ID'].strip()
+                if(row['ReferenceID'].strip()):
+                    reference_id = row['ReferenceID'].strip()
                     reference_id = int(reference_id)
                     try:
                         row_object = Fragment.objects.get(original_id=reference_id)
                     except Fragment.DoesNotExist:
                         try:
-                            row_object = ingest_errors.objects.get(field='Reference ID',value=reference_id,filename='fp_parameters.csv')
+                            row_object = ingest_errors.objects.get(field='ReferenceID',value=reference_id,filename='fp_parameters.csv')
                         except ingest_errors.DoesNotExist:
-                            row_object = ingest_errors(field='Reference ID',value=reference_id,filename='fp_parameters.csv',file_row_num=row_num,comment='reference id value not found in fragment')
+                            row_object = ingest_errors(field='ReferenceID',value=reference_id,filename='fp_parameters.csv',file_row_num=row_num,comment='ReferenceID value not found in fragment')
                             row_object.save()
                     istim=row['Istim (pA)']
                     tstim=row['Tstim (ms)']
@@ -352,8 +352,8 @@ class FiringPatternStringField:
     
     # helper function for importing firing pattern definitons and parameters 
     def firing_pattern_definition_parameter(row,parameter_value):
-        firingParameters=["Delay (ms)","PFS(ms)","SWA (mV)","NISI"," ISIAV (ms)","SD (ms)","Max ISI (ms)","Min ISI (ms)","1st ISI (ms)","ISIAV1-2  (ms)","ISIAV1-3 (ms)","ISIAV1-4 (ms)","Last ISI (ms)","ISIAVn-n-1 (ms)","ISIAVn-n-2 (ms)","ISIAVn-n-3 (ms)","MaxISI/MinISI","MaxISIn /ISIn-1","MaxISIn /ISIn+1","AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2","RDmax    (RDi=|ISIi-ISIAV|/ISIAV )","DF=(Delay-2 ISIAV1-2)/Delay","SF=(PSF-2 ISIAVn-n-1)/PSF","Tmax(scaled)","ISImax(scaled)","ISIav (scaled)","SD(scaled)","Slope","Intercept","Slope1","Intercept1","Css (Yc1)","Xc1","Slope2","Intercept2","Slope3","Intercept3","Xc2","Yc2","F1-2","F1-2crit","F2-3","F2-3crit","F3-4","F3-4crit","P1-2","P2-3","P3-4","P1-2uv","P2-3uv","P3-4uv","ISIi/ISIi-1","i","ISIav(i,n)/ISI1,i-1","MaxISIj /ISIj-1","MaxISIj /ISIj+1","NISI_c"," ISIAV (ms)_c","Max ISI (ms)_c","Min ISI (ms)_c","1st ISI (ms)_c","Tmax(scaled) _c","ISImax(scaled)_c","ISIav (scaled) _c","SD(scaled) _c","Slope_c","Intercept_c","no value_c","Intercept1_c","Css (Yc1) _c","Xc1_c","Slope2_c","Intercept2_c","Slope3_c","Intercept3_c","Xc2_c","Yc2_c","F1-2_c","F1-2crit_c","F2-3_c","F2-3crit_c","F3-4_c","F3-4crit_c","P1-2_c","P2-3_c","P3-4_c","P1-2uv_c","P2-3uv_c","P3-4uv_c"]
-        firingDefinitions=["Delay ","PFS","SWA ","NISI"," ISIAV ","SD ","Max ISI ","Min ISI ","1st ISI ","ISIAV1-2  ","ISIAV1-3 ","ISIAV1-4 ","Last ISI ","ISIAVn-n-1 ","ISIAVn-n-2 ","ISIAVn-n-3 ","MaxISI/MinISI","MaxISIn /ISIn-1","MaxISIn /ISIn+1","AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2","RDmax    (RDi=|ISIi-ISIAV|/ISIAV )","DF=(Delay-2 ISIAV1-2)/Delay","SF=(PSF-2 ISIAVn-n-1)/PSF","Tmax(scaled)","ISImax(scaled)","ISIav (scaled)","SD(scaled)","Slope","Intercept","Slope1","Intercept1","Css (Yc1)","Xc1","Slope2","Intercept2","Slope3","Intercept3","Xc2","Yc2","F1-2","F1-2crit","F2-3","F2-3crit","F3-4","F3-4crit","P1-2","P2-3","P3-4","P1-2uv","P2-3uv","P3-4uv","ISIi/ISIi-1","i","ISIav(i,n)/ISI1,i-1","MaxISIj /ISIj-1","MaxISIj /ISIj+1","NISI_c"," ISIAV (ms)_c","Max ISI (ms)_c","Min ISI (ms)_c","1st ISI (ms)_c","Tmax(scaled) _c","ISImax(scaled)_c","ISIav (scaled) _c","SD(scaled) _c","Slope_c","Intercept_c","Slope1_c","Intercept1_c","Css (Yc1) _c","Xc1_c","Slope2_c","Intercept2_c","Slope3_c","Intercept3_c","Xc2_c","Yc2_c","F1-2_c","F1-2crit_c","F2-3_c","F2-3crit_c","F3-4_c","F3-4crit_c","P1-2_c","P2-3_c","P3-4_c","P1-2uv_c","P2-3uv_c","P3-4uv_c"]
+        firingParameters=["Delay (ms)","PFS(ms)","SWA (mV)","NISI"," ISIAV (ms)","SD (ms)","Max ISI (ms)","Min ISI (ms)","1st ISI (ms)","ISIAV1-2  (ms)","ISIAV1-3 (ms)","ISIAV1-4 (ms)","Last ISI (ms)","ISIAVn-n-1 (ms)","ISIAVn-n-2 (ms)","ISIAVn-n-3 (ms)","MaxISI/MinISI","MaxISIn /ISIn-1","MaxISIn /ISIn+1","AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2","RDmax    (RDi=|ISIi-ISIAV|/ISIAV )","DF=(Delay-2 ISIAV1-2)/Delay","SF=(PSF-2 ISIAVn-n-1)/PSF","Tmax(scaled)","ISImax(scaled)","ISIav (scaled)","SD(scaled)","Slope","Intercept","Slope1","Intercept1","Css (Yc1)","Xc1","Slope2","Intercept2","Slope3","Intercept3","Xc2","Yc2","F1-2","F1-2crit","F2-3","F2-3crit","F3-4","F3-4crit","P1-2","P2-3","P3-4","P1-2uv","P2-3uv","P3-4uv","ISIi/ISIi-1","i","ISIav(i,n)/ISI1,i-1","MaxISIj /ISIj-1","MaxISIj /ISIj+1","NISI_c"," ISIAV (ms)_c","Max ISI (ms)_c","Min ISI (ms)_c","1st ISI (ms)_c","Tmax(scaled) _c","ISImax(scaled)_c","ISIav (scaled) _c","SD(scaled) _c","Slope_c","Intercept_c","no value_c","Intercept1_c","Css (Yc1) _c","Xc1_c","Slope2_c","Intercept2_c","Slope3_c","Intercept3_c","Xc2_c","Yc2_c","F1-2_c","F1-2crit_c","F2-3_c","F2-3crit_c","F3-4_c","F3-4crit_c","P1-2_c","P2-3_c","P3-4_c","P1-2uv_c","P2-3uv_c","P3-4uv_c","M_2p","C_2p","M_3p","C1_3p","C2_3p","M1_4p","C1_4p","M2_4p","C2_4p","N_ISI_cut_3p","N_ISI_cut_4p","F_12","F_crit_12","F_23","F_crit_23","F_34","F_crit_34","P_12","P_12_UV","P_23","P_23_UV","P_34","P_34_UV","M_FASP","C_FASP","N_ISI_cut_FASP","OVERALL FIRING PATTERN"]
+        firingDefinitions=["Delay ","PFS","SWA ","NISI"," ISIAV ","SD ","Max ISI ","Min ISI ","1st ISI ","ISIAV1-2  ","ISIAV1-3 ","ISIAV1-4 ","Last ISI ","ISIAVn-n-1 ","ISIAVn-n-2 ","ISIAVn-n-3 ","MaxISI/MinISI","MaxISIn /ISIn-1","MaxISIn /ISIn+1","AI = (ISIAVn-n-2 - ISIAV1-3)/ ISIAVn-n-2","RDmax    (RDi=|ISIi-ISIAV|/ISIAV )","DF=(Delay-2 ISIAV1-2)/Delay","SF=(PSF-2 ISIAVn-n-1)/PSF","Tmax(scaled)","ISImax(scaled)","ISIav (scaled)","SD(scaled)","Slope","Intercept","Slope1","Intercept1","Css (Yc1)","Xc1","Slope2","Intercept2","Slope3","Intercept3","Xc2","Yc2","F1-2","F1-2crit","F2-3","F2-3crit","F3-4","F3-4crit","P1-2","P2-3","P3-4","P1-2uv","P2-3uv","P3-4uv","ISIi/ISIi-1","i","ISIav(i,n)/ISI1,i-1","MaxISIj /ISIj-1","MaxISIj /ISIj+1","NISI_c"," ISIAV (ms)_c","Max ISI (ms)_c","Min ISI (ms)_c","1st ISI (ms)_c","Tmax(scaled) _c","ISImax(scaled)_c","ISIav (scaled) _c","SD(scaled) _c","Slope_c","Intercept_c","Slope1_c","Intercept1_c","Css (Yc1) _c","Xc1_c","Slope2_c","Intercept2_c","Slope3_c","Intercept3_c","Xc2_c","Yc2_c","F1-2_c","F1-2crit_c","F2-3_c","F2-3crit_c","F3-4_c","F3-4crit_c","P1-2_c","P2-3_c","P3-4_c","P1-2uv_c","P2-3uv_c","P3-4uv_c","M_2p","C_2p","M_3p","C1_3p","C2_3p","M1_4p","C1_4p","M2_4p","C2_4p","N_ISI_cut_3p","N_ISI_cut_4p","F_12","F_crit_12","F_23","F_crit_23","F_34","F_crit_34","P_12","P_12_UV","P_23","P_23_UV","P_34","P_34_UV","M_FASP","C_FASP","N_ISI_cut_FASP","Firing pattern names"]      
         header=[None]*len(firingDefinitions)
         result=[None]*len(firingDefinitions)
         if(parameter_value=='definition' or parameter_value=='none' or parameter_value=='parameter'):
@@ -460,7 +460,34 @@ class FiringPatternStringField:
             p3_4_c                              =result[85],
             p1_2uv_c                            =result[86],
             p2_3uv_c                            =result[87],
-            p3_4uv_c                            =result[88],         
+            p3_4uv_c                            =result[88],
+            m_2p                                =result[89],      
+            c_2p                                =result[90],
+            m_3p                                =result[91],
+            c1_3p                               =result[92],
+            c2_3p                               =result[93],
+            m1_4p                               =result[94],
+            c1_4p                               =result[95],
+            m2_4p                               =result[96],
+            c2_4p                               =result[97],
+            n_isi_cut_3p                        =result[98],
+            n_isi_cut_4p                        =result[99],
+            f_12                                =result[100],
+            f_crit_12                           =result[101],
+            f_23                                =result[102],
+            f_crit_23                           =result[103],
+            f_34                                =result[104],
+            f_crit_34                           =result[105],
+            p_12                                =result[106],
+            p_12_uv                             =result[107],
+            p_23                                =result[108],
+            p_23_uv                             =result[109],
+            p_34                                =result[110],
+            p_34_uv                             =result[111],
+            m_fasp                              =result[112],
+            c_fasp                              =result[113],
+            n_isi_cut_fasp                      =result[114],
+            fp_name                             =result[115],
             definition_parameter                =parameter_value  
         )
         row_object.save()
