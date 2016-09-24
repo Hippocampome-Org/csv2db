@@ -262,7 +262,7 @@ class FiringPatternStringField:
                         Fragment_id = fragment_id
                     )
                     row_object.save()
-                    evidence_id=row_object.id
+                    #evidence_id=row_object.id
                     row_object = ArticleEvidenceRel(
                         Article_id  = article_id,
                         Evidence_id = evidence_id
