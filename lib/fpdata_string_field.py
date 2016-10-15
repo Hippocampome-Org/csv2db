@@ -1,6 +1,6 @@
 from ..models import Article, ArticleEvidenceRel, Attachment, Evidence, EvidenceFragmentRel, Fragment, ingest_errors
 from ..models import article_not_found
-from ..models import FiringPattern,FiringPatternRel
+from ..models import FiringPattern,FiringPatternRel,SpikeTime
 
 # ingests attachment_fp.csv, fp_fragment.csv, fp_definitions.csv, fp_parameters and populates ArticleEvidenceRel, article_not_found, Evidence, EvidenceFragmentRel, FiringPattern, FiringPatternRel, Fragment,
 class FiringPatternStringField:
@@ -317,6 +317,22 @@ class FiringPatternStringField:
                         tstim_ms            = tstim
                     )
                     row_object.save()
+                    FiringPatternRel_id=row_object.id
+                    # save spiking data
+                    for index in range(1,100):
+                        spike_name          = "ISI"
+                        spike_data          = None
+
+                        spike_name+=str(index)
+                        spike_data=row[spike_name]
+
+                        row_object = SpikeTime(
+                            FiringPattern_id    = firingPattern_id,
+                            spike_name          = spike_name,
+                            spike_data          = spike_data
+                        )
+                        row_object.save()
+
             except Exception as e:
                 try:
                     row_object = ingest_errors.objects.get(file_row_num=row_num,filename='fp_parameters.csv')

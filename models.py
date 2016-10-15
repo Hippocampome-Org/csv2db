@@ -437,6 +437,15 @@ class Property(models.Model):
     class Meta:
         db_table = 'Property'
 
+class SpikeTime(models.Model):
+    id                      = models.AutoField(primary_key=True)
+    dt                      = models.DateTimeField(auto_now_add=True)
+    FiringPattern_id        = models.IntegerField(null=True)
+    spike_name              = models.CharField(max_length=128, null=True)
+    spike_data              = models.CharField(max_length=128, null=True)
+    class Meta:
+        db_table = 'SpikeTime'
+
 class Synonym(models.Model):
     id      = models.AutoField(primary_key=True)
     dt      = models.DateTimeField(auto_now_add=True)
@@ -494,4 +503,7 @@ class TypeTypeRel(models.Model):
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
         db_table = 'TypeTypeRel'
+
+
+
 

@@ -60,6 +60,8 @@ class Command(BaseCommand):
             self.stdout.write('Successfully truncated Markerdata')
             cursor.execute('truncate table Property')
             self.stdout.write('Successfully truncated Property')
+            cursor.execute('truncate table SpikeTime')
+            self.stdout.write('Successfully truncated SpikeTime')
             cursor.execute('truncate table Synonym')
             self.stdout.write('Successfully truncated Synonym')
             cursor.execute('truncate table SynonymTypeRel')
