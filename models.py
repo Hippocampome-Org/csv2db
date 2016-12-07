@@ -240,7 +240,7 @@ class EvidencePropertyTypeRel(models.Model):
 class FiringPattern(models.Model):
     id                                  = models.AutoField(primary_key=True)
     overall_fp                          = models.CharField(max_length=128, null=True)
-    fp_name                             = models.CharField(max_length=128, null=True)
+    fp_name                             = models.CharField(db_index=True, max_length=128, null=True)
     delay_ms                            = models.CharField(max_length=128, null=True)
     pfs_ms                              = models.CharField(max_length=128, null=True)
     swa_mv                              = models.CharField(max_length=128, null=True)
