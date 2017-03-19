@@ -433,7 +433,7 @@ class Property(models.Model):
     dt        = models.DateTimeField(auto_now_add=True)
     subject   = models.CharField(max_length=45, null=True)
     predicate = models.CharField(max_length=45, null=True)
-    object    = models.CharField(max_length=45, null=True)
+    object    = models.CharField(max_length=256, null=True)
     class Meta:
         db_table = 'Property'
 

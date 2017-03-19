@@ -55,7 +55,7 @@ markers = ('CB', 'CR', 'PV', 'CB1', 'Mus2R', 'Sub P Rec', '5HT-3', 'Gaba-a-alpha
 
 class MarkerdataStringField:
 
-    def parse_and_save(row):
+    def parse_and_save(row,count):                   
         c = 0
         for col in cols:
             marker = markers[c]
@@ -67,6 +67,12 @@ class MarkerdataStringField:
             conflict_note             = None
             interpretation_notes      = None
             property_type_explanation = None
+            if count==0:
+                markerName=string_field.strip()
+                if markerName !="":
+                    row_object = Property(subject=marker,predicate='has name',object=markerName)
+                    row_object.save()
+              
             if '{' in string_field:
                 string_field_open_brace_split = string_field.split('{')
                 tag = string_field_open_brace_split[1][0]

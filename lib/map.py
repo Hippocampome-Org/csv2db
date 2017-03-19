@@ -604,9 +604,11 @@ class Map:
 
     # ingests markerdata.csv and populates ArticleSynonymRel, Evidence, EvidenceEvidenceRel, EvidenceMarkerdataRel, EvidencePropertyTypeRel, Markerdata, Property
     def markerdata_to_markerdata(self):
+        count=0
         for row in self.rows:
             try:
-                MarkerdataStringField.parse_and_save(row)
+                MarkerdataStringField.parse_and_save(row,count)
+                count=count+1
             except Exception:
                 break
 
