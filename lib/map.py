@@ -614,10 +614,13 @@ class Map:
 
     # ingests morphdata.csv and populates ArticleSynonymRel, EvidencePropertyTypeRel, Property
     def morphdata_to_morphdata(self):
+        #intial lines skipped still actual rows
+        count=9
         MorphdataPropertyRecords.save()
         for row in self.rows:
             try:
-                MorphdataStringField.parse_and_save(row)
+                MorphdataStringField.parse_and_save(row,count)
+                count=count+1
             except Exception:
                 break
 

@@ -1,7 +1,7 @@
 # morphdata_string_field.py
 
 import re
-from ..models import ArticleEvidenceRel, ArticleSynonymRel, EvidenceFragmentRel, EvidencePropertyTypeRel, Fragment, Property, SynonymTypeRel
+from ..models import ArticleEvidenceRel, ArticleSynonymRel, EvidenceFragmentRel, EvidencePropertyTypeRel, Fragment, ingest_errors, Property, SynonymTypeRel, Type
 
 cols = ('L101','L102','L103','L104',
         'L201','L202','L203','L204','L205',
@@ -69,7 +69,7 @@ class MorphdataPropertyRecords:
                         row_object.save()
 
 class MorphdataStringField:
-    def parse_and_save(row):
+    def parse_and_save(row,count):
         try:
             if (row['Class Status'] == 'N' or row['Class Status'] == 'M') and row['Neurites \ Layer ID->'] != 'somata':
                 Type_id = int(row['unique ID'])
@@ -90,7 +90,23 @@ class MorphdataStringField:
                     perisomatic_targeting_flag = int(row['Perisomatic targeting flag'].strip())
                 except ValueError:
                     perisomatic_targeting_flag = None
+                #supplemental pmids
                 supplemental_pmids = row['Supplemental PMIDs'].strip()
+                #supertype
+                super_type=row['Supertype'].strip()
+                if ':blank' in super_type:
+                    super_type=None
+                try:
+                    id_type=int(Type_id)
+                    row_object_type = Type.objects.get(id=id_type)
+                    row_object_type.supertype=super_type
+                    row_object_type.save()
+                except Exception as e:
+                    try:
+                        error_object = ingest_errors.objects.get(file_row_num=count,filename='morphdata.csv')
+                    except ingest_errors.DoesNotExist:
+                        error_object = ingest_errors(filename='morphdata.csv',file_row_num=count,comment=str(e))
+                        error_object.save()
                 # process soma location information
                 soma_location = row['Soma location'].split('(',1)
                 subject       = 'somata'

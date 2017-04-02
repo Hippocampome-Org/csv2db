@@ -49,7 +49,7 @@ class EnumTypeStatus(EnumField, models.CharField):
 
 class EnumTypeTypeConnectionStatus(EnumField, models.CharField):
     def __init__(self, *args, choices=[], **kwargs):
-        values = [('positive', 'Positive'), ('negative', 'Negative')]
+        values = [('positive', 'Positive'), ('negative', 'Negative'), ('potential', 'Potential')]
         super(EnumTypeTypeConnectionStatus, self).__init__(*args, choices=values, **kwargs)
 
 # Enum values for pattern_definition field
@@ -491,6 +491,7 @@ class Type(models.Model):
     excit_inhib = EnumTypeExcitInhib(max_length=1, null=True) # enum('e','i')
     status      = EnumTypeStatus(max_length=6, null=True) # enum('active','frozen')
     notes       = models.TextField(null=True)
+    supertype   = models.CharField(max_length=255, null=True)
     class Meta:
         db_table = 'Type'
 
