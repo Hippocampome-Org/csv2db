@@ -12,18 +12,18 @@ cols = ( '1', '2', '3', '4', '5', '6', '7', '8', '9','10',
         '61','62','63','64','65','66','67','68','69','70',
         '71','72','73','74','75','76','77','78','79','80',
         '81','82','83','84','85','86','87','88','89','90',
-        '91','92','93','94','95','96','97','98','99','100','101')
+        '91','92','93','94','95','96','97','98')
 
 markers = ('CB', 'CR', 'PV', 'CB1', 'Mus2R', 'Sub P Rec', '5HT-3', 'Gaba-a-alpha', 'mGluR1a', 'vGluT3',
            'CCK', 'ENK', 'NPY', 'SOM', 'VIP', 'NG', 'alpha-actinin-2', 'CoupTF II', 'nNOS', 'RLN',
-           'ChAT', 'DYN', 'EAAT3', 'GlyT2', 'mGluR7a', 'mGluR8a', 'MOR', 'NKB', 'PPTA', 'PPTB',
-           'vAChT', 'VIAAT', 'vGluT2', 'AChE', 'GAT-1', 'CGRP', 'mGluR2/3', 'Kv3.1', 'mGluR5', 'Prox1',
-           'GABAa \\delta', 'VILIP', 'Cx36', 'Mus1R', 'Mus3R', 'Mus4R', 'ErbB4', 'CaM', 'Y1', 'Man1a',
-           'Bok', 'PCP4', 'AMIGO2', 'Sub P', 'AMPAR 2/3', 'Disc1', 'PSA-NCAM', 'BDNF', 'p-CREB', 'SCIP',
-           'Math-2', 'Neuropilin2', 'Id-2', 'vGAT', 'SATB1', 'NECAB1', 'Chrna2', 'Y2', 'mGluR1', 'GluR2/3',
-           'CRF', 'GABA-B1', 'Caln', 'vGlut1', 'mGluR2', 'mGluR3', 'mGluR4', 'SPO', 'GABAa\\alpha 2', 'GABAa\\alpha 3',
-           'GABAa\\alpha 4', 'GABAa\\alpha 5', 'GABAa\\alpha 6', 'GABAa\\beta 1', 'GABAa\\beta 2', 'GABAa\\beta 3', 'GABAa\\gamma 1', 'GABAa\\gamma 2', 'mGluR5a', 'SATB2',
-           'Ctip2', 'GluA2', 'GluA1', 'GluA3', 'GluA4', 'GAT-3', 'CXCR4', 'PPE', 'AR-beta1', 'AR-beta2', 'TH')
+           'ChAT', 'DYN', 'EAAT3', 'GlyT2', 'mGluR7a', 'mGluR8a', 'MOR', 'NKB', 'PPTA','vAChT', 
+           'vGluT2', 'AChE', 'GAT-1', 'CGRP', 'mGluR2/3', 'Kv3.1', 'mGluR5', 'Prox1','GABAa \\delta', 'VILIP',
+           'Cx36', 'Mus1R', 'Mus3R', 'Mus4R', 'ErbB4', 'CaM', 'Y1', 'Man1a','Bok', 'PCP4',
+           'AMIGO2', 'Sub P', 'Disc1', 'PSA-NCAM', 'BDNF', 'p-CREB', 'SCIP','Math-2', 'Neuropilin2', 'Id-2',
+           'vGAT', 'SATB1', 'NECAB1', 'Chrna2', 'Y2', 'mGluR1', 'GluA2/3', 'CRF', 'GABA-B1', 'Caln',
+           'vGlut1', 'mGluR2', 'mGluR3', 'mGluR4', 'SPO', 'GABAa\\alpha 2', 'GABAa\\alpha 3','GABAa\\alpha 4', 'GABAa\\alpha 5', 'GABAa\\alpha 6', 
+           'GABAa\\beta 1', 'GABAa\\beta 2', 'GABAa\\beta 3', 'GABAa\\gamma 1', 'GABAa\\gamma 2', 'mGluR5a', 'SATB2','Ctip2', 'GluA2', 'GluA1',
+           'GluA3', 'GluA4', 'GAT-3', 'CXCR4', 'PPE', 'AR-beta1', 'AR-beta2', 'TH')
 
 """
 @marker_code = {
@@ -55,13 +55,12 @@ markers = ('CB', 'CR', 'PV', 'CB1', 'Mus2R', 'Sub P Rec', '5HT-3', 'Gaba-a-alpha
 
 class MarkerdataStringField:
 
-    def parse_and_save(row,count):                   
+    def parse_and_save(row,count):     
         c = 0
         for col in cols:
             marker = markers[c]
             c = c + 1
             string_field = row[col]
-
             # tag and conflict note determination
             tag                       = None
             conflict_note             = None
@@ -109,6 +108,15 @@ class MarkerdataStringField:
                     conflict_note = 'positive; negative inference'
                 elif token_sans_comment == 'pi,n':
                     conflict_note = 'positive inference; negative'
+                elif token_sans_comment == 'cp':
+                    conflict_note = 'confirmed positive'
+                elif token_sans_comment == 'cn':
+                    conflict_note = 'confirmed negative'
+                elif token_sans_comment == 'cpi':
+                    conflict_note = 'confirmed positive inference'
+                elif token_sans_comment == 'cni':
+                    conflict_note = 'confirmed negative inference'
+
                 if '*' in token:
                     token_property_type_explanation  = token.strip()
                     tokens_property_type_explanation = token_property_type_explanation.split('*')

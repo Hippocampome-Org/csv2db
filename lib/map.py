@@ -112,6 +112,12 @@ class Map:
                 while lines_to_skip > 0:
                     next(self.f) # read next line in file
                     lines_to_skip = lines_to_skip - 1
+            #skip  3 lines for markerdata
+            if csv_filename=='markerdata.csv':
+                lines_to_skip_marker=3
+                while lines_to_skip_marker > 0:
+                    next(self.f) # read next line in file
+                    lines_to_skip_marker = lines_to_skip_marker - 1
             self.rows = DictReader(self.f)
             try:
                 self.stdout.write('%s begin... [%02s] %s' % (dt.now(), order, csv_file_path))
@@ -611,6 +617,7 @@ class Map:
                 count=count+1
             except Exception:
                 break
+            
 
     # ingests morphdata.csv and populates ArticleSynonymRel, EvidencePropertyTypeRel, Property
     def morphdata_to_morphdata(self):
