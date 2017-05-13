@@ -6,7 +6,7 @@ import re
 from csv import DictReader, reader
 from datetime import datetime as dt
 from io import TextIOWrapper
-from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel, ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
+from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel, ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Onhold, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
 from ..models import article_not_found
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
@@ -167,6 +167,8 @@ class Map:
                 Map.conndata_to_conndata(self)
             elif order == '21':
                 Map.term_to_term(self)  
+            elif order == '22':
+                Map.onhold_to_onhold(self)  
             else:
                 pass
             try:
@@ -659,6 +661,63 @@ class Map:
                         row_object = Type.objects.filter(id=Type_id).update(notes=notes_txt)
                     except Type.DoesNotExist:
                         row_object = None
+
+    # ingests onhold_types_pmids.csv and populates Onhold
+    def onhold_to_onhold(self):
+        count=2
+        for row in self.rows:
+            subregion = None
+            type_id   = None
+            pmid_isbn = None
+            name      = None
+            try:
+                subregion = row['Subregion']
+                #type id
+                try:
+                    type_id = int(row['Unique ID'])
+                except ValueError:
+                    type_id=None
+                    row_object = ingest_errors(field='Unique ID',value=row['Unique ID'],filename='onhold_types_pmids.csv',file_row_num=count,comment='invalid Unique id value')
+                    row_object.save()
+                    continue
+
+                # pmid isbn
+                try:
+                    name = row['Type'].strip()
+                    pmid = row['PMID'].strip()
+                    pmid_isbn=int(pmid.replace('-',''))
+                    #check if article exists for this pmid
+                    try:
+                        count_ids = Article.objects.filter(pmid_isbn=pmid_isbn).order_by('id').count()
+                    except Article.DoesNotExist:
+                        try:
+                            row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn)
+                        except article_not_found.DoesNotExist:
+                            row_object = article_not_found(pmid_isbn=pmid_isbn)
+                            row_object.save()
+                    if count_ids==0:
+                        try:
+                            row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn)
+                        except article_not_found.DoesNotExist:
+                            row_object = article_not_found(pmid_isbn=pmid_isbn)
+                            row_object.save()
+                except ValueError:
+                    pmid_isbn=None
+                    row_object = ingest_errors(field='PMID',value=row['PMID'],filename='onhold_types_pmids.csv',file_row_num=count,comment='invalid PMID value')
+                    row_object.save()  
+                    continue  
+                    
+                row_object = Onhold(
+                    Type_id   = type_id,
+                    subregion = subregion,
+                    pmid_isbn = pmid_isbn,
+                    name      = name
+                )
+                row_object.save()
+            except Exception as e:
+                row_object = ingest_errors(field='',value='',filename='onhold_types_pmids.csv',file_row_num=count,comment=str(e))
+                row_object.save()
+            count=count+1
 
     # ingests synonym.csv and populates Synonym, SynonymTypeRel
     def synonym_to_synonym(self):

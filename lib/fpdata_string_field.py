@@ -374,6 +374,11 @@ class FiringPatternStringField:
         result=[None]*len(firingDefinitions)
         if(parameter_value=='definition' or parameter_value=='none' or parameter_value=='parameter'):
             overall_fp=row['OVERALL FIRING PATTERN']
+            if(parameter_value=='definition'):
+                overall_fp=row['OVERALL FIRING PATTERN 2']
+            elif(parameter_value=='parameter'):
+                overall_fp=row['OVERALL FIRING PATTERN']
+
             if(parameter_value=='definition' or parameter_value=='none'):
                 header=firingDefinitions
             else:

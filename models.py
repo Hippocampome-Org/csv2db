@@ -428,6 +428,16 @@ class Markerdata(models.Model):
     class Meta:
         db_table = 'Markerdata'
 
+class Onhold(models.Model):
+    id          = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    name        = models.CharField(max_length=255, null=True)
+    Type_id     = models.IntegerField(db_index=True, unique=False, null=True)
+    subregion   = models.CharField(max_length=8, null=True)
+    pmid_isbn   = models.BigIntegerField(null=True)
+    class Meta:
+        db_table = 'Onhold'
+
 class Property(models.Model):
     id        = models.AutoField(primary_key=True)
     dt        = models.DateTimeField(auto_now_add=True)
