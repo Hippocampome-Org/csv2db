@@ -811,6 +811,9 @@ class Map:
                     position_HC_standard = int(row['position_HC_standard'])
                 except ValueError:
                     position = None
+                explanatory_notes = row['explanatory_notes']
+                if len(explanatory_notes) == 0:
+                    explanatory_notes = None
                 subregion = row['subregion']
                 if len(subregion) == 0:
                     subregion = None
@@ -833,14 +836,15 @@ class Map:
                     row_object = Type.objects.filter(id=id).update(position=position,nickname=short_name)
                 except Type.DoesNotExist:
                     row_object = Type(
-                        id          = id,
-                        position    = position,
-                        subregion   = subregion,
-                        name        = full_name,
-                        nickname    = short_name,
-                        excit_inhib = excit_inhib,
-                        status      = status,
-                        notes       = notes
+                        id                = id,
+                        position          = position,
+                        explanatory_notes = explanatory_notes,
+                        subregion         = subregion,
+                        name              = full_name,
+                        nickname          = short_name,
+                        excit_inhib       = excit_inhib,
+                        status            = status,
+                        notes             = notes
                     )
                     row_object.save()
             #end if status == 'active':

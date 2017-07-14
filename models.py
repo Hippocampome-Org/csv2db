@@ -492,16 +492,17 @@ class Term(models.Model):
         db_table = 'Term'
 
 class Type(models.Model):
-    id          = models.AutoField(primary_key=True)
-    position    = models.IntegerField(null=True)
-    dt          = models.DateTimeField(auto_now_add=True)
-    subregion   = models.CharField(max_length=8, null=True)
-    name        = models.CharField(max_length=255, null=True)
-    nickname    = models.CharField(max_length=64, null=True)
-    excit_inhib = EnumTypeExcitInhib(max_length=1, null=True) # enum('e','i')
-    status      = EnumTypeStatus(max_length=6, null=True) # enum('active','frozen')
-    notes       = models.TextField(null=True)
-    supertype   = models.CharField(max_length=255, null=True)
+    id                = models.AutoField(primary_key=True)
+    position          = models.IntegerField(null=True)
+    dt                = models.DateTimeField(auto_now_add=True)
+    explanatory_notes = models.CharField(max_length=5000, null=True)
+    subregion         = models.CharField(max_length=8, null=True)
+    name              = models.CharField(max_length=255, null=True)
+    nickname          = models.CharField(max_length=64, null=True)
+    excit_inhib       = EnumTypeExcitInhib(max_length=1, null=True) # enum('e','i')
+    status            = EnumTypeStatus(max_length=6, null=True) # enum('active','frozen')
+    notes             = models.TextField(null=True)
+    supertype         = models.CharField(max_length=255, null=True)
     class Meta:
         db_table = 'Type'
 
