@@ -357,6 +357,7 @@ class FiringPattern(models.Model):
     c_fasp                              = models.CharField(max_length=128, null=True)
     n_isi_cut_fasp                      = models.CharField(max_length=128, null=True)
     definition_parameter                = EnumFiringPatternDefinitionParameter(max_length=10, null=True) # enum('definition','parameter') 
+   
     class Meta:
         db_table = 'FiringPattern'
 
@@ -427,6 +428,73 @@ class Markerdata(models.Model):
     protocol   = models.CharField(max_length=64, null=True)
     class Meta:
         db_table = 'Markerdata'
+
+class MaterialMethod(models.Model):
+    id                                  = models.AutoField(primary_key=True)
+    unique_id                           = models.IntegerField(db_index=True, unique=False, null=True)
+    overall_fp                          = models.CharField(max_length=128, null=True)
+    pmid_isbn                           = models.BigIntegerField(null=True)
+    subtypes                            = models.CharField(max_length=16, null=True)
+    figure_no                           = models.CharField(max_length=64, null=True)
+    istim_pa                            = models.CharField(max_length=64, null=True)
+    tstim_ms                            = models.CharField(max_length=64, null=True)
+    species                             = models.CharField(max_length=16, null=True)
+    inbred_strain                       = models.CharField(max_length=32, null=True)
+    age_postnatal_days                  = models.CharField(max_length=32, null=True)
+    sex                                 = models.CharField(max_length=16, null=True)
+    weight                              = models.CharField(max_length=16, null=True)
+    type_of_preparation                 = models.CharField(max_length=32, null=True)
+    orientation                         = models.CharField(max_length=64, null=True)
+    thickness                           = models.CharField(max_length=32, null=True)
+    nacl                                = models.CharField(max_length=16, null=True)
+    kcl                                 = models.CharField(max_length=16, null=True)
+    cacl2                               = models.CharField(max_length=16, null=True)
+    nah2po4                             = models.CharField(max_length=16, null=True)
+    kh2po4                              = models.CharField(max_length=16, null=True)
+    mgcl2                               = models.CharField(max_length=16, null=True)
+    mgso4                               = models.CharField(max_length=16, null=True)
+    nahco3                              = models.CharField(max_length=16, null=True)
+    hepes                               = models.CharField(max_length=16, null=True)
+    napyr                               = models.CharField(max_length=16, null=True)
+    glucose                             = models.CharField(max_length=16, null=True)
+    o2                                  = models.CharField(max_length=16, null=True)
+    co2                                 = models.CharField(max_length=16, null=True)
+    t                                   = models.CharField(max_length=32, null=True)
+    kyna                                = models.CharField(max_length=16, null=True)
+    cnqx                                = models.CharField(max_length=16, null=True)
+    d_ap5                               = models.CharField(max_length=16, null=True)
+    bcc                                 = models.CharField(max_length=16, null=True)
+    recording_method                    = models.CharField(max_length=64, null=True)
+    gramicidine                         = models.CharField(max_length=32, null=True)
+    kmeso4                              = models.CharField(max_length=16, null=True)
+    kglu                                = models.CharField(max_length=16, null=True)
+    kac                                 = models.CharField(max_length=16, null=True)
+    cscl                                = models.CharField(max_length=16, null=True)
+    kcl_ps                              = models.CharField(max_length=16, null=True)
+    nacl_ps                             = models.CharField(max_length=16, null=True)
+    mgcl2_ps                            = models.CharField(max_length=16, null=True)
+    cacl2_ps                            = models.CharField(max_length=16, null=True)
+    hepes_ps                            = models.CharField(max_length=16, null=True)
+    qx_314                              = models.CharField(max_length=16, null=True)
+    egta                                = models.CharField(max_length=16, null=True)
+    na_egta                             = models.CharField(max_length=16, null=True)
+    atp                                 = models.CharField(max_length=16, null=True)
+    mg_atp                              = models.CharField(max_length=16, null=True)
+    na2_atp                             = models.CharField(max_length=16, null=True)
+    gtp                                 = models.CharField(max_length=16, null=True)
+    na_gtp                              = models.CharField(max_length=16, null=True)
+    na2_gtp                             = models.CharField(max_length=16, null=True)
+    na3_gtp                             = models.CharField(max_length=16, null=True)
+    mg_gtp                              = models.CharField(max_length=16, null=True)
+    pcr                                 = models.CharField(max_length=16, null=True)
+    na_pcr                              = models.CharField(max_length=16, null=True)
+    na2_pcr                             = models.CharField(max_length=16, null=True)
+    bc                                  = models.CharField(max_length=16, null=True)
+    ly                                  = models.CharField(max_length=16, null=True)
+    nb                                  = models.CharField(max_length=16, null=True)
+    af594                               = models.CharField(max_length=16, null=True)
+    class Meta:
+        db_table = 'MaterialMethod'
 
 class Onhold(models.Model):
     id          = models.AutoField(primary_key=True)
@@ -515,7 +583,3 @@ class TypeTypeRel(models.Model):
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
         db_table = 'TypeTypeRel'
-
-
-
-

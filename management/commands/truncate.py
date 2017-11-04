@@ -58,6 +58,8 @@ class Command(BaseCommand):
             self.stdout.write('Successfully truncated ingest_errors')
             cursor.execute('truncate table Markerdata')
             self.stdout.write('Successfully truncated Markerdata')
+            cursor.execute('truncate table MaterialMethod')
+            self.stdout.write('Successfully truncated MaterialMethod')
             cursor.execute('truncate table Onhold')
             self.stdout.write('Successfully truncated Onhold')
             cursor.execute('truncate table Property')

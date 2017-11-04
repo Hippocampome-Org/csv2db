@@ -1,6 +1,6 @@
 from ..models import Article, ArticleEvidenceRel, Attachment, Evidence, EvidenceFragmentRel, Fragment, ingest_errors
 from ..models import article_not_found
-from ..models import FiringPattern,FiringPatternRel,SpikeTime
+from ..models import FiringPattern, FiringPatternRel, SpikeTime, MaterialMethod
 
 # ingests attachment_fp.csv, fp_fragment.csv, fp_definitions.csv, fp_parameters and populates ArticleEvidenceRel, article_not_found, Evidence, EvidenceFragmentRel, FiringPattern, FiringPatternRel, Fragment,
 class FiringPatternStringField:
@@ -514,3 +514,119 @@ class FiringPatternStringField:
         row_object.save()
         firing_pattern_id=row_object.id
         return firing_pattern_id
+    
+    # # helper function for importing Animals, Preparations, Artificial cerebrospinal fluid and Recording method/Pipette solutions. 
+    def materials_to_method(self):
+        cnt = 0
+        #Start reading row number
+        row_num = 1
+        for row in self.rows:
+            cnt = cnt+1
+            if cnt > 1:
+                try:
+                    result = [None]*len(row)
+                    for index in range(0,len(row)):
+                        result[index] = row[index]
+                    # find row from FiringPattern update it
+                    overall_fp = result[9]
+                    #remove - frop type id
+                    type_id = result[2]
+                    if cnt > 2:
+                        try:
+                            if(type_id.replace('-','').strip()):
+                                type_id = int(type_id.replace('-',''))
+                        except Exception:
+                            # write new pmid_isbn to article_not_found
+                            row_object = ingest_errors(field='Uniqu ID',value=type_id,filename='materials_methods.csv',file_row_num=row_num,comment='invalid Unique Id value')
+                            row_object.save()
+                            type_id = None
+                    else: 
+                        type_id = None
+                    # set pmid_isbn
+                    pmid_isbn = result[4]
+                    if cnt > 2:
+                        try:
+                            if(pmid_isbn.replace('-','').strip()):
+                                pmid_isbn = int(pmid_isbn.replace('-',''))
+                        except Exception:
+                            # write new pmid_isbn to article_not_found
+                            try:
+                                row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn)
+                            except article_not_found.DoesNotExist:
+                                row_object = article_not_found(pmid_isbn=pmid_isbn)
+                                row_object.save()
+                            pmid_isbn = None
+                    else:
+                        pmid_isbn = None
+                    # Remove no data rows
+                    if( "No_data" not in overall_fp):
+                        row_object = MaterialMethod(
+                            unique_id                           = type_id,
+                            overall_fp                          = overall_fp,
+                            pmid_isbn                           = pmid_isbn,
+                            subtypes                            = result[3],
+                            figure_no                           = result[5],
+                            istim_pa                            = result[6],
+                            tstim_ms                            = result[7],
+                            species                             = result[10],
+                            inbred_strain                       = result[11],
+                            age_postnatal_days                  = result[12],
+                            sex                                 = result[13],
+                            weight                              = result[14],
+                            type_of_preparation                 = result[16],
+                            orientation                         = result[17],
+                            thickness                           = result[18],
+                            nacl                                = result[20],
+                            kcl                                 = result[21],
+                            cacl2                               = result[22],
+                            nah2po4                             = result[23],
+                            kh2po4                              = result[24],
+                            mgcl2                               = result[25],
+                            mgso4                               = result[26],
+                            nahco3                              = result[27],
+                            hepes                               = result[28],
+                            napyr                               = result[29],
+                            glucose                             = result[30],
+                            o2                                  = result[31],
+                            co2                                 = result[32],
+                            t                                   = result[33],
+                            kyna                                = result[34],
+                            cnqx                                = result[35],
+                            d_ap5                               = result[36],
+                            bcc                                 = result[37],
+                            recording_method                    = result[39],
+                            gramicidine                         = result[40],
+                            kmeso4                              = result[41],
+                            kglu                                = result[42],
+                            kac                                 = result[43],
+                            cscl                                = result[44],
+                            kcl_ps                              = result[45],
+                            nacl_ps                             = result[46],
+                            mgcl2_ps                            = result[47],
+                            cacl2_ps                            = result[48],
+                            hepes_ps                            = result[49],
+                            qx_314                              = result[50],
+                            egta                                = result[51],
+                            na_egta                             = result[52],
+                            atp                                 = result[53],
+                            mg_atp                              = result[54],
+                            na2_atp                             = result[55],
+                            gtp                                 = result[56],
+                            na_gtp                              = result[57],
+                            na2_gtp                             = result[58],
+                            na3_gtp                             = result[59],
+                            mg_gtp                              = result[60],
+                            pcr                                 = result[61],
+                            na_pcr                              = result[62],
+                            na2_pcr                             = result[63],
+                            bc                                  = result[64],
+                            ly                                  = result[65],
+                            nb                                  = result[66],
+                            af594                               = result[67]
+                        )
+                        row_object.save()
+                
+                except Exception as e:
+                    row_object = ingest_errors(filename='materials_methods.csv',file_row_num=row_num,comment=str(e))
+                    row_object.save()
+            row_num=row_num+1   

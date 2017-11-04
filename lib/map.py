@@ -119,6 +119,11 @@ class Map:
                     next(self.f) # read next line in file
                     lines_to_skip_marker = lines_to_skip_marker - 1
             self.rows = DictReader(self.f)
+            
+            #material_method
+            if csv_filename=='material_method.csv':
+                self.rows = reader(self.f, delimiter=',')    
+
             try:
                 self.stdout.write('%s begin... [%02s] %s' % (dt.now(), order, csv_file_path))
             except AttributeError:
@@ -162,13 +167,15 @@ class Map:
             elif order == '18':
                 FiringPatternStringField.parameters_to_parameters(self)
             elif order == '19':
-                Map.connfragment_to_connfragment(self)
+                FiringPatternStringField.materials_to_method(self)
             elif order == '20':
-                Map.conndata_to_conndata(self)
+                Map.connfragment_to_connfragment(self)
             elif order == '21':
-                Map.term_to_term(self)  
+                Map.conndata_to_conndata(self)
             elif order == '22':
-                Map.onhold_to_onhold(self)  
+                Map.term_to_term(self)  
+            elif order == '23':
+                Map.onhold_to_onhold(self)
             else:
                 pass
             try:
