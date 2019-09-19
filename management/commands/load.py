@@ -8,25 +8,22 @@ from csv2db.lib.map import Map
 class Command(BaseCommand):
     help = 'load tables'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--term',
+    def add_arguments(self, parser):
+        parser.add_argument('--term',
             action='store_true',
             dest='term',
             default=False,
-            help='load Term table'),
-        ) + (
-        make_option('--type',
+            help='load Term table')
+        parser.add_argument('--type',
             action='store_true',
             dest='type',
             default=False,
-            help='load Type table with short names'),
-        ) + (
-        make_option('--typedev',
+            help='load Type table with short names')
+        parser.add_argument('--typedev',
             action='store_true',
             dest='typedev',
             default=False,
-            help='load Type table with intermediate names'),
-        )
+            help='load Type table with intermediate names')
 
     def handle(self, *args, **options):
         try:

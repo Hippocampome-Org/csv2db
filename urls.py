@@ -1,7 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from csv2db import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^import_all/$', views.import_all, name='import_all'),
     url(r'^import_article/$', views.import_article, name='import_article'),
@@ -16,4 +16,4 @@ urlpatterns = patterns('',
     url(r'^import_term/$', views.import_term, name='import_term'),
     url(r'^import_type/$', views.import_type, name='import_type'),
     url(r'^import_type_dev/$', views.import_type_dev, name='import_type_dev'),
-)
+]
