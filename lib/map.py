@@ -7,7 +7,7 @@ from csv import DictReader, reader
 from datetime import datetime as dt
 from io import TextIOWrapper
 from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel, ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Onhold, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
-from ..models import article_not_found
+from ..models import article_not_found, izhmodels_single, user
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
 from .markerdata_string_field import MarkerdataStringField
@@ -176,6 +176,10 @@ class Map:
                 Map.term_to_term(self)  
             elif order == '23':
                 Map.onhold_to_onhold(self)
+            elif order == '24':
+                Map.izhmodels_to_izhmodels(self)
+            elif order == '25':
+                Map.user_to_user(self)
             else:
                 pass
             try:
@@ -857,3 +861,75 @@ class Map:
             #end if status == 'active':
         #end for row in self.rows:
     #end def type_to_type(self):
+    def izhmodels_to_izhmodels(self):
+        try:
+            for row in self.rows:
+                izhmodels_single_object = izhmodels_single(
+                   unique_id           = row['uniqueID'].replace("-",""),
+                   subtype_id          = row['subtypeID'],
+                   name                = row['name'],
+                   preferred           = row['preferred'],
+                   k                   = row['k'],
+                   a                   = row['a'],
+                   b                   = row['b'],
+                   d                   = row['d'],
+                   C                   = row['C'],
+                   Vr                  = row['Vr'],
+                   Vt                  = row['Vt'],
+                   Vpeak               = row['Vpeak'],
+                   Vmin                = row['Vmin'],
+                   k0                  = row['k0'],
+                   a0                  = row['a0'],
+                   b0                  = row['b0'],
+                   d0                  = row['d0'],
+                   C0                  = row['C0'],
+                   Vr0                 = row['Vr0'],
+                   Vt0                 = row['Vt0'],
+                   Vpeak0              = row['Vpeak0'],
+                   Vmin0               = row['Vmin0'],
+                   k1                  = row['k1'],
+                   a1                  = row['a1'],
+                   b1                  = row['b1'],
+                   d1                  = row['d1'],
+                   C1                  = row['C1'],
+                   Vr1                 = row['Vr1'],
+                   Vt1                 = row['Vt1'],
+                   Vpeak1              = row['Vpeak1'],
+                   Vmin1               = row['Vmin1'],
+                   G0                  = row['G0'],
+                   P0                  = row['P0'],
+                   k2                  = row['k2'],
+                   a2                  = row['a2'],
+                   b2                  = row['b2'],
+                   d2                  = row['d2'],
+                   C2                  = row['C2'],
+                   Vr2                 = row['Vr2'],
+                   Vt2                 = row['Vt2'],
+                   Vpeak2              = row['Vpeak2'],
+                   Vmin2               = row['Vmin2'],
+                   G1                  = row['G1'],
+                   P1                  = row['P1'],
+                   k3                  = row['k3'],
+                   a3                  = row['a3'],
+                   b3                  = row['b3'],
+                   d3                  = row['d3'],
+                   C3                  = row['C3'],
+                   Vr3                 = row['Vr3'],
+                   Vt3                 = row['Vt3'],
+                   Vpeak3              = row['Vpeak3'],
+                   Vmin3               = row['Vmin3'],
+                   G2                  = row['G2'],
+                   P2                  = row['P2'])
+                izhmodels_single_object.save()
+        except Exception as e:
+            print(e)
+            
+    def user_to_user(self):
+        try:
+            for row in self.rows:
+                user_object = user(
+                   password           = row['password'],
+                   permission          = row['permission'])
+                user_object.save()
+        except Exception as e:
+            print(e)
