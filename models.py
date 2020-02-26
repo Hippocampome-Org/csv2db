@@ -29,7 +29,7 @@ class EnumEvidenceEvidenceType(EnumField, models.CharField):
 
 class EnumFragmentAttachmentType(EnumField, models.CharField):
     def __init__(self, *args, choices=[], **kwargs):
-        values = [('morph_figure', 'Morph_figure'), ('morph_table', 'Morph_table')]
+        values = [('morph_figure', 'Morph_figure'), ('morph_table', 'Morph_table'), ('synpro_figure', 'Synpro_figure'), ('NULL', 'NULL')]
         super(EnumFragmentAttachmentType, self).__init__(*args, choices=values, **kwargs)
 
 class EnumFragmentType(EnumField, models.CharField):
@@ -134,7 +134,7 @@ class Conndata(models.Model):
     dt                  = models.DateTimeField(auto_now_add=True)
     Type1_id            = models.IntegerField(db_index=True, unique=False, null=True)
     Type2_id            = models.IntegerField(db_index=True, unique=False, null=True)
-    connection_status   = EnumTypeTypeConnectionStatus(max_length=8, null=True) # enum('positive','negative')
+    connection_status   = EnumTypeTypeConnectionStatus(max_length=16, null=True) # enum('positive','negative')
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
         db_table = 'Conndata'
@@ -378,12 +378,12 @@ class Fragment(models.Model):
     original_id            = models.BigIntegerField(null=True)
     dt                     = models.DateTimeField(auto_now_add=True)
     quote                  = models.TextField(null=True)
-    page_location          = models.CharField(max_length=64, null=True)
+    page_location          = models.CharField(max_length=256, null=True)
     pmid_isbn              = models.BigIntegerField(null=True)
     pmid_isbn_page         = models.IntegerField(null=True)
     type                   = EnumFragmentType(max_length=8, null=True) # enum('data','protocol','animal')
-    attachment             = models.CharField(max_length=256, null=True)
-    attachment_type        = EnumFragmentAttachmentType(max_length=12, null=True) # enum('morph_figure','morph_table')
+    attachment             = models.CharField(max_length=2000, null=True)
+    attachment_type        = EnumFragmentAttachmentType(max_length=100, null=True) # enum('morph_figure','morph_table')
     cell_id                = models.IntegerField(null=True)
     parameter              = models.CharField(max_length=64, null=True)
     interpretation         = models.CharField(max_length=64, null=True)
@@ -579,7 +579,7 @@ class TypeTypeRel(models.Model):
     dt                  = models.DateTimeField(auto_now_add=True)
     Type1_id            = models.IntegerField(db_index=True, unique=False, null=True)
     Type2_id            = models.IntegerField(db_index=True, unique=False, null=True)
-    connection_status   = EnumTypeTypeConnectionStatus(max_length=8, null=True) # enum('positive','negative')
+    connection_status   = EnumTypeTypeConnectionStatus(max_length=16, null=True) # enum('positive','negative')
     connection_location = models.CharField(max_length=16, null=True)
     class Meta:
         db_table = 'TypeTypeRel'
@@ -650,3 +650,212 @@ class user(models.Model):
     permission  = models.IntegerField(null=False)  
     class Meta:
         db_table = 'user'
+
+
+
+class attachment_neurite(models.Model):
+    id                                    = models.AutoField(primary_key=True)
+    authors                               = models.CharField(max_length=400, null=True)
+    title                                 = models.CharField(max_length=400, null=True)
+    journal_or_Book                       = models.CharField(max_length=400, null=True)
+    year                                  = models.CharField(max_length=400, null=True)
+    PMID_or_ISBN                          = models.CharField(max_length=400, null=True)
+    cell_identifier                       = models.CharField(max_length=400, null=True)
+    neurite                               = models.CharField(max_length=400, null=True)
+    neurite_ID                            = models.CharField(max_length=400, null=True)
+    name_of_file_containing_figure        = models.CharField(max_length=400, null=True)
+    reference_ID                          = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'attachment_neurite'
+
+class neurite_quantified(models.Model):
+    id                                                     = models.AutoField(primary_key=True)
+    unique_ID                                             = models.CharField(max_length=400, null=True)
+    subregion                                             = models.CharField(max_length=400, null=True)
+    e_or_i                                                = models.CharField(max_length=400, null=True)
+    axonal_dendritic_pattern                              = models.CharField(max_length=400, null=True)
+    p                                                     = models.CharField(max_length=400, null=True)
+    Projection_patterning                                 = models.CharField(max_length=400, null=True)
+    hippocampome_neuronal_class                          = models.CharField(max_length=400, null=True)
+    neurite                                              = models.CharField(max_length=400, null=True)
+    neurite_ID                                            = models.CharField(max_length=400, null=True)
+    total_length                                            = models.CharField(max_length=400, null=True)
+    filtered_total_length                                   = models.CharField(max_length=400, null=True)
+    percent_of_neurite_tree                                       = models.CharField(max_length=400, null=True)
+    morphology_pattern                                      = models.CharField(max_length=400, null=True)
+    mean_path_length                                      = models.CharField(max_length=400, null=True)
+    entry_point                                           = models.CharField(max_length=400, null=True)
+    average                                               = models.CharField(max_length=400, null=True)
+    convexhull                                              = models.CharField(max_length=400, null=True)
+    reference_ID                                          = models.CharField(max_length=400, null=True)
+    location_in_reference                   = models.CharField(max_length=400, null=True)
+    reference                       = models.CharField(max_length=400, null=True)
+    morphological_notes             = models.CharField(max_length=400, null=True)
+    class Meta:
+         db_table = 'neurite_quantified'
+
+class neurite(models.Model):
+    id                  = models.AutoField(primary_key=True)
+    referenceID                       = models.CharField(max_length=400, null=True)
+    cellID                            = models.CharField(max_length=400, null=True)
+    cellType                          = models.CharField(max_length=400, null=True)
+    material_used                     = models.CharField(max_length=2000, null=True)
+    location_in_reference             = models.CharField(max_length=400, null=True)
+    interpretation                    = models.CharField(max_length=400, null=True)
+    authors                           = models.CharField(max_length=400, null=True)
+    title                             = models.CharField(max_length=400, null=True)
+    journal_or_Book                      = models.CharField(max_length=400, null=True)
+    year                              = models.CharField(max_length=400, null=True)
+    PMID_or_ISBN                         = models.CharField(max_length=400, null=True)
+    pmid_isbn_page                    = models.CharField(max_length=400, null=True)
+    area                              = models.CharField(max_length=400, null=True)
+    soma_state                        = models.CharField(max_length=400, null=True)
+    soma                              = models.CharField(max_length=400, null=True)
+    species                           = models.CharField(max_length=400, null=True)
+    strain                            = models.CharField(max_length=400, null=True)
+    type                              = models.CharField(max_length=400, null=True)
+    gender                            = models.CharField(max_length=400, null=True)
+    age                               = models.CharField(max_length=400, null=True)
+    slice                             = models.CharField(max_length=400, null=True)
+    recording                         = models.CharField(max_length=400, null=True)
+    labeled                           = models.CharField(max_length=400, null=True)
+    markers                           = models.CharField(max_length=400, null=True)
+    input                             = models.CharField(max_length=400, null=True)
+    output                            = models.CharField(max_length=400, null=True)
+    sections                          = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'neurite'
+
+class potential_synapses(models.Model):
+    id                                             = models.AutoField(primary_key=True)
+    source_ID                                     = models.CharField(max_length=400, null=True)
+    source_Name                                   = models.CharField(max_length=400, null=True)
+    source_E_or_I                                    = models.CharField(max_length=400, null=True)
+    target_ID                                     = models.CharField(max_length=400, null=True)
+    target_Name                                   = models.CharField(max_length=400, null=True)
+    target_E_or_I                                    = models.CharField(max_length=400, null=True)
+    type                                          = models.CharField(max_length=400, null=True)
+    layers                                        = models.CharField(max_length=400, null=True)
+    neurite                                       = models.CharField(max_length=400, null=True)
+    neurite_id                                    = models.CharField(max_length=400, null=True)
+    potential_synapses                            = models.CharField(max_length=400, null=True)
+    connection                                   = models.CharField(max_length=400, null=True)
+    ES                                            = models.CharField(max_length=400, null=True)
+    ES_PMID                                       = models.CharField(max_length=400, null=True)
+    refIDs                                        = models.CharField(max_length=400, null=True)
+    notes                                         = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'potential_synapses'
+
+class number_of_contacts(models.Model):
+    id                                             = models.AutoField(primary_key=True)
+    source_ID                                     = models.CharField(max_length=400, null=True)
+    source_Name                                   = models.CharField(max_length=400, null=True)
+    source_E_or_I                                    = models.CharField(max_length=400, null=True)
+    target_ID                                     = models.CharField(max_length=400, null=True)
+    target_Name                                   = models.CharField(max_length=400, null=True)
+    target_E_or_I                                    = models.CharField(max_length=400, null=True)
+    type                                          = models.CharField(max_length=400, null=True)
+    layers                                        = models.CharField(max_length=400, null=True)
+    neurite                                       = models.CharField(max_length=400, null=True)
+    neurite_id                                    = models.CharField(max_length=400, null=True)
+    potential_synapses                            = models.CharField(max_length=400, null=True)
+    number_of_contacts                            = models.CharField(max_length=400, null=True)
+    probability                            = models.CharField(max_length=400, null=True)
+    connection                                   = models.CharField(max_length=400, null=True)
+    ES                                            = models.CharField(max_length=400, null=True)
+    ES_PMID                                       = models.CharField(max_length=400, null=True)
+    refIDs                                        = models.CharField(max_length=400, null=True)
+    notes                                         = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'number_of_contacts'
+    
+class attachment_connectivity(models.Model):
+    id                                             = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    RefID                                     = models.CharField(max_length=400, null=True)
+    source_ID                                     = models.CharField(max_length=400, null=True)
+    source_class                                     = models.CharField(max_length=400, null=True)
+    target_ID                                     = models.CharField(max_length=400, null=True)
+    target_class                                     = models.CharField(max_length=400, null=True)
+    Quote                     = models.CharField(max_length=5000, null=True)
+    Location             = models.CharField(max_length=400, null=True)
+    Author             = models.CharField(max_length=400, null=True)
+    Title             = models.CharField(max_length=400, null=True)
+    Journal             = models.CharField(max_length=400, null=True)
+    Year             = models.CharField(max_length=400, null=True)
+    PMID_or_ISBN                         = models.CharField(max_length=400, null=True)
+    pmid_isbn_page                    = models.CharField(max_length=400, null=True)
+    UID                    = models.CharField(max_length=400, null=True)
+    Unknown                                        = models.CharField(max_length=400, null=True)
+    Figure                                        = models.CharField(max_length=400, null=True)
+    HcoRefID                    = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'attachment_connectivity'
+
+class SynproFragment(models.Model):
+    id                     = models.IntegerField(db_index=True, unique=True, null=False, primary_key=True)
+    original_id            = models.BigIntegerField(null=True)
+    dt                     = models.DateTimeField(auto_now_add=True)
+    quote                  = models.TextField(null=True)
+    page_location          = models.CharField(max_length=256, null=True)
+    pmid_isbn              = models.BigIntegerField(null=True)
+    pmid_isbn_page         = models.IntegerField(null=True)
+    type                   = EnumFragmentType(max_length=8, null=True) # enum('data','protocol','animal')
+    attachment             = models.CharField(max_length=2000, null=True)
+    attachment_type        = EnumFragmentAttachmentType(max_length=100, null=True) # enum('morph_figure','morph_table')
+    source_id                = models.IntegerField(null=True)
+    target_id                = models.IntegerField(null=True)
+    parameter              = models.CharField(max_length=64, null=True)
+    interpretation         = models.CharField(max_length=64, null=True)
+    interpretation_notes   = models.TextField(null=True)
+    linking_cell_id        = models.IntegerField(null=True)
+    linking_pmid_isbn      = models.BigIntegerField(null=True)
+    linking_pmid_isbn_page = models.IntegerField(null=True)
+    linking_quote          = models.TextField(null=True)
+    linking_page_location  = models.CharField(max_length=256, null=True)
+    species_tag            = models.CharField(max_length=512, null=True)
+    species_descriptor     = models.CharField(max_length=512, null=True)
+    age_weight             = models.CharField(max_length=512, null=True)
+    protocol               = models.CharField(max_length=512, null=True)
+    class Meta:
+        db_table = 'SynproFragment'
+
+class SynproArticleEvidenceRel(models.Model):
+    id          = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    Article_id  = models.IntegerField(db_index=True, unique=False, null=True)
+    Evidence_id = models.IntegerField(db_index=True, unique=False, null=True)
+    class Meta:
+        db_table = 'SynproArticleEvidenceRel'
+
+class SynproEvidencePropertyTypeRel(models.Model):
+    id                        = models.AutoField(primary_key=True)
+    dt                        = models.DateTimeField(auto_now_add=True)
+    Evidence_id               = models.IntegerField(db_index=True, unique=False, null=True)
+    Property_id               = models.TextField(null=True)
+    source_id                   = models.IntegerField(db_index=True, unique=False, null=True)
+    target_id                   = models.IntegerField(db_index=True, unique=False, null=True)
+    Type_id                   = models.IntegerField(db_index=True, unique=False, null=True)
+    Article_id                = models.IntegerField(db_index=True, unique=False, null=True)
+    priority                  = models.IntegerField(null=True)
+    conflict_note             = models.CharField(max_length=64, null=True)
+    unvetted                  = models.NullBooleanField(null=True)
+    linking_quote             = models.TextField(null=True)
+    interpretation_notes      = models.TextField(null=True)
+    property_type_explanation = models.TextField(null=True)
+    pc_flag                   = models.NullBooleanField(null=True)
+    soma_pcl_flag             = models.NullBooleanField(null=True)
+    ax_de_pcl_flag            = models.IntegerField(unique=False,null=True)
+    perisomatic_targeting_flag= models.IntegerField(unique=False,null=True)
+    supplemental_pmids        = models.CharField(max_length=256, null=True)
+    class Meta:
+        db_table = 'SynproEvidencePropertyTypeRel'
+
+class SynproEvidenceFragmentRel(models.Model):
+    id          = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    Evidence_id = models.IntegerField(db_index=True, unique=False, null=True)
+    Fragment_id = models.IntegerField(db_index=True, unique=False, null=True)
+    class Meta:
+        db_table = 'SynproEvidenceFragmentRel'

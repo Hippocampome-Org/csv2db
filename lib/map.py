@@ -6,20 +6,25 @@ import re
 from csv import DictReader, reader
 from datetime import datetime as dt
 from io import TextIOWrapper
-from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel, ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Onhold, Synonym, SynonymTypeRel, Term, Type, TypeTypeRel
-from ..models import article_not_found, izhmodels_single, user
+from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel
+from ..models import ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Onhold, Synonym
+from ..models import SynonymTypeRel, Term, Type, TypeTypeRel,potential_synapses, number_of_contacts,neurite
+from ..models import neurite_quantified, attachment_neurite, attachment_connectivity, EvidencePropertyTypeRel
+from ..models import SynproEvidencePropertyTypeRel, article_not_found, izhmodels_single, user
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
 from .markerdata_string_field import MarkerdataStringField
 from .morphdata_string_field import MorphdataPropertyRecords, MorphdataStringField
 from .fpdata_string_field import FiringPatternStringField
+from .synpro_string_field import SynproStringField
+
 
 class Map:
 
     # reads specified csv file
     def __init__(self, request):
         self.request = request
-        #self.rows = DictReader(TextIOWrapper(self.request.FILES['file'].file, encoding='UTF-8'))
+        # self.rows = DictReader(TextIOWrapper(self.request.FILES['file'].file, encoding='UTF-8'))
         self.f = TextIOWrapper(self.request.FILES['file'].file, encoding='UTF-8')
         # look for morphdata file type and associated preheader lines to skip
         saw_morphdata = 0
@@ -36,19 +41,19 @@ class Map:
                     lines_to_skip = lines_to_skip + 1
                 else:
                     break
-        self.f.seek(0) # rewind the file
-        if saw_morphdata == 1: # skip preheader lines if morphdata
+        self.f.seek(0)  # rewind the file
+        if saw_morphdata == 1:  # skip preheader lines if morphdata
             while lines_to_skip > 0:
-                next(self.f) # read next line in file
+                next(self.f)  # read next line in file
                 lines_to_skip = lines_to_skip - 1
         self.rows = DictReader(self.f)
 
     # from the command line, ingests the all.csv file and processes the contained list of files
     def all_csv(self, dev=None):
         module_dir = os.path.dirname(__file__)  # get current directory
-        #example before sub: module_dir = '/Users/djh/wd/krasnow/csv2db/lib'
+        # example before sub: module_dir = '/Users/djh/wd/krasnow/csv2db/lib'
         module_dir = re.sub(r'csv2db/lib', r'static/csv2db/dat', module_dir)
-        #example after sub : module_dir = '/Users/djh/wd/krasnow/static/csv2db/dat'
+        # example after sub : module_dir = '/Users/djh/wd/krasnow/static/csv2db/dat'
         if dev is None:
             all_csv_filename = 'all.csv'
             all_csv_file_path = os.path.join(module_dir, all_csv_filename)
@@ -81,16 +86,16 @@ class Map:
         process_order = []
         csv_filenames = []
         module_dir = os.path.dirname(__file__)  # get current directory
-        #example before sub: module_dir = '/Users/djh/wd/krasnow/csv2db/lib'
+        # example before sub: module_dir = '/Users/djh/wd/krasnow/csv2db/lib'
         module_dir = re.sub(r'csv2db/lib', r'static/csv2db/dat', module_dir)
-        #example after sub : module_dir = '/Users/djh/wd/krasnow/static/csv2db/dat'
+        # example after sub : module_dir = '/Users/djh/wd/krasnow/static/csv2db/dat'
         for row in self.rows:
             process_order.append(row['process order'])
             csv_filenames.append(row['csv filename'])
         for order, csv_filename in zip(process_order, csv_filenames):
-            csv_file_path   = os.path.join(module_dir, csv_filename)
+            csv_file_path = os.path.join(module_dir, csv_filename)
             csv_file_buffer = open(csv_file_path, 'rb')
-            #self.rows = DictReader(TextIOWrapper(csv_file_buffer, encoding='UTF-8'))
+            # self.rows = DictReader(TextIOWrapper(csv_file_buffer, encoding='UTF-8'))
             self.f = TextIOWrapper(csv_file_buffer, encoding='UTF-8')
             # look for morphdata file type and associated preheader lines to skip
             saw_morphdata = 0
@@ -107,29 +112,29 @@ class Map:
                         lines_to_skip = lines_to_skip + 1
                     else:
                         break
-            self.f.seek(0) # rewind the file
-            if saw_morphdata == 1: # skip preheader lines if morphdata
+            self.f.seek(0)  # rewind the file
+            if saw_morphdata == 1:  # skip preheader lines if morphdata
                 while lines_to_skip > 0:
-                    next(self.f) # read next line in file
+                    next(self.f)  # read next line in file
                     lines_to_skip = lines_to_skip - 1
-            #skip  3 lines for markerdata
-            if csv_filename=='markerdata.csv':
-                lines_to_skip_marker=3
+            # skip  3 lines for markerdata
+            if csv_filename == 'markerdata.csv':
+                lines_to_skip_marker = 3
                 while lines_to_skip_marker > 0:
-                    next(self.f) # read next line in file
+                    next(self.f)  # read next line in file
                     lines_to_skip_marker = lines_to_skip_marker - 1
             self.rows = DictReader(self.f)
-            
-            #material_method
-            if csv_filename=='material_method.csv':
-                self.rows = reader(self.f, delimiter=',')    
+
+            # material_method
+            if csv_filename == 'material_method.csv':
+                self.rows = reader(self.f, delimiter=',')
 
             try:
                 self.stdout.write('%s begin... [%02s] %s' % (dt.now(), order, csv_file_path))
             except AttributeError:
                 pass
-            if   order == '1':
-               #dev = 'true'
+            if order == '1':
+                # dev = 'true'
                 dev = 'false'
                 Map.type_to_type(self, dev)
             elif order == '2':
@@ -173,13 +178,37 @@ class Map:
             elif order == '21':
                 Map.conndata_to_conndata(self)
             elif order == '22':
-                Map.term_to_term(self)  
+                Map.term_to_term(self)
             elif order == '23':
                 Map.onhold_to_onhold(self)
             elif order == '24':
                 Map.izhmodels_to_izhmodels(self)
             elif order == '25':
                 Map.user_to_user(self)
+            elif order == '26':
+                Map.attachment_neurite(self)
+            elif order == '27':
+                Map.neurite_quantified(self)
+            elif order == '28':
+                Map.neurite(self)
+            elif order == '29':
+                Map.potential_synapses(self)
+            elif order == '30':
+                Map.number_of_contacts(self)
+            elif order == '31':
+                Map.attachment_connectivity(self)
+            elif order == '32':
+                self.synpro='nbyk'
+                Map.synprofrag_to_synprofrag(self)
+            elif order == '33':
+                self.synpro='nbyk'
+                Map.synprodata_to_synprodata(self)
+            elif order == '34':
+                self.synpro='nbym'
+                Map.synprofrag_to_synprofrag(self)
+            elif order == '35':
+                self.synpro='nbym'
+                Map.synprodata_to_synprodata(self)
             else:
                 pass
             try:
@@ -189,13 +218,13 @@ class Map:
             csv_file_buffer.close()
 
     # ingests article.csv and populates Article, ArticleAuthorRel, Author
-    def article_to_article(self): # and article_to_author
+    def article_to_article(self):  # and article_to_author
         pmid_isbn_reads = []
         first_page_reads = []
-        name_list = [] # authors
+        name_list = []  # authors
         article_id = 0
         for row in self.rows:
-            pmid_isbn = row['pmid_isbn'].replace('-','')
+            pmid_isbn = row['pmid_isbn'].replace('-', '')
             pmcid = row['pmcid']
             if len(pmcid) == 0:
                 pmcid = None
@@ -237,19 +266,19 @@ class Map:
             except ValueError:
                 citation_count = None
             row_object = Article(
-                pmid_isbn      = pmid_isbn,
-                pmcid          = pmcid,
-                nihmsid        = nihmsid,
-                doi            = doi,
-                open_access    = open_access,
-                title          = title,
-                publication    = publication,
-                volume         = volume,
-                issue          = issue,
-                first_page     = first_page,
-                last_page      = last_page,
-                year           = year,
-                citation_count = citation_count
+                pmid_isbn=pmid_isbn,
+                pmcid=pmcid,
+                nihmsid=nihmsid,
+                doi=doi,
+                open_access=open_access,
+                title=title,
+                publication=publication,
+                volume=volume,
+                issue=issue,
+                first_page=first_page,
+                last_page=last_page,
+                year=year,
+                citation_count=citation_count
             )
             # check for dups in article.csv and only continue processing if new
             saw_article = 0
@@ -261,7 +290,7 @@ class Map:
                 article_id = article_id + 1
                 pmid_isbn_reads.append(pmid_isbn)
                 first_page_reads.append(first_page)
-    
+
                 # article_to_author
                 auth_string = row['authors']
                 auth_list = auth_string.split(',')
@@ -270,35 +299,36 @@ class Map:
                     name = auth.strip()
                     if name not in name_list:
                         row_object = Author(
-                            name = name
+                            name=name
                         )
                         row_object.save()
                         name_list.append(name)
-    
+
                     # ArticleAuthorRel
                     row_object = ArticleAuthorRel(
-                        Author_id  = name_list.index(name) + 1,
-                        Article_id = article_id,
-                        author_pos = author_pos
+                        Author_id=name_list.index(name) + 1,
+                        Article_id=article_id,
+                        author_pos=author_pos
                     )
                     row_object.save()
                     author_pos = author_pos + 1
-                #end for auth in auth_list:
-            #end if saw_article == 0:
+                # end for auth in auth_list:
+            # end if saw_article == 0:
         # end for row in self.rows:
-    #end def article_to_article(self): # and article_to_author
+
+    # end def article_to_article(self): # and article_to_author
 
     # ingests attachment_morph.csv, attachment_marker.csv, attachment_ephys.csv and populates Attachment, FragmentTypeRel
     def attachment_to_attachment(self):
         is_attachment_morph_csv = 0
-        for row in self.rows: # is this an attachment_morph.csv file or not
+        for row in self.rows:  # is this an attachment_morph.csv file or not
             try:
                 priority = row['Representative?']
                 is_attachment_morph_csv = 1
             except Exception:
                 is_attachment_morph_csv = 0
             break
-        self.f.seek(0) # rewind the file
+        self.f.seek(0)  # rewind the file
         self.rows = DictReader(self.f)
         for row in self.rows:
             try:
@@ -328,8 +358,10 @@ class Map:
                         parameter = None
                     else:
                         # map Attachment parameter value to Fragment parameter value
-                        parameters_attachment = ('Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APamplitude', 'APwidth', 'maxFR', 'sAHP', 'sag')
-                        parameters_fragment   = ('Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APampl'     , 'APwidth', 'maxFR', 'sAHP', 'sag')
+                        parameters_attachment = (
+                            'Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APamplitude', 'APwidth', 'maxFR', 'sAHP', 'sag')
+                        parameters_fragment = (
+                            'Vrest', 'Rin', 'tau', 'Vthresh', 'fAHP', 'APampl', 'APwidth', 'maxFR', 'sAHP', 'sag')
                         p = 0
                         for parameter_attachment in parameters_attachment:
                             if parameter == parameter_attachment:
@@ -355,13 +387,13 @@ class Map:
                     interpretation_notes = None
                 # write Attachment record
                 row_object = Attachment(
-                    cell_id              = cell_identifier,
-                    original_id          = quote_reference_id,
-                    name                 = name_of_file_containing_figure,
-                    type                 = figure_table,
-                    parameter            = parameter,
-                    protocol_tag         = protocol_tag,
-                    interpretation_notes = interpretation_notes
+                    cell_id=cell_identifier,
+                    original_id=quote_reference_id,
+                    name=name_of_file_containing_figure,
+                    type=figure_table,
+                    parameter=parameter,
+                    protocol_tag=protocol_tag,
+                    interpretation_notes=interpretation_notes
                 )
                 row_object.save()
                 # write FragmentTypeRel row
@@ -369,9 +401,9 @@ class Map:
                     priority = row['Representative?']
                     row_object = None
                     if priority == '1':
-                        row_object = FragmentTypeRel(Type_id=cell_identifier,priority=1)
+                        row_object = FragmentTypeRel(Type_id=cell_identifier, priority=1)
                     else:
-                        row_object = FragmentTypeRel(Type_id=cell_identifier,priority=None)
+                        row_object = FragmentTypeRel(Type_id=cell_identifier, priority=None)
                     row_object.save()
                 else:
                     priority = None
@@ -382,35 +414,41 @@ class Map:
     def connection_to_connection(self):
         for row in self.rows:
             try:
-                Type1_id = int(row['Source class identity'])
-                Type2_id = int(row['Target class identity'])
+                Type1_id = int(row['Source_ID'])
+                Type2_id = int(row['Target_ID'])
             except ValueError:
                 continue
             connection_status_string = row['Connection?']
-            connection_status = 'negative'
+            connection_status = 'potential'
             if connection_status_string == '1':
-               connection_status = 'positive'
-            connection_location_string = row['Target layer']
-            #connection_locations = connection_location_string.split(',') # was using ',' separator in original version of known_connections.csv
-            connection_locations = connection_location_string.split(';') # now using ';' separator in new version of known_connections.csv
+                connection_status = 'positive'
+            elif (connection_status_string == '-1' or connection_status_string == '0'):
+                connection_status = 'negative'
+            connection_location_string = row['Layers']
+            # connection_locations = connection_location_string.split(',') # was using ',' separator in original version of known_connections.csv
+            connection_locations = connection_location_string.split(
+                ';')  # now using ';' separator in new version of known_connections.csv
             for connection_location in connection_locations:
                 try:
-                    row_object = TypeTypeRel.objects.get(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location.strip())
+                    row_object = TypeTypeRel.objects.get(Type1_id=Type1_id, Type2_id=Type2_id,
+                                                         connection_status=connection_status,
+                                                         connection_location=connection_location.strip())
                 except TypeTypeRel.DoesNotExist:
-                    row_object = TypeTypeRel(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location.strip())
+                    row_object = TypeTypeRel(Type1_id=Type1_id, Type2_id=Type2_id, connection_status=connection_status,
+                                             connection_location=connection_location.strip())
                     row_object.save()
 
     # ingests conndata.csv and populate Conndata table
     def conndata_to_conndata(self):
-        row_num=1          # starting header offset
+        row_num = 1  # starting header offset
         for row in self.rows:
-            row_num=row_num+1 
+            row_num = row_num + 1
             try:
                 Type1_id = int(row['Source_ID'])
                 Type2_id = int(row['Target_ID'])
-                connection_location_string=row['Layers'].strip()
+                connection_location_string = row['Layers'].strip()
                 connection_status_string = row['Connection?'].strip()
-                reference_id_string=row['RefIDs'].strip()
+                reference_id_string = row['RefIDs'].strip()
             except ValueError:
                 continue
             if connection_status_string == '1':
@@ -421,79 +459,99 @@ class Map:
                 connection_status = 'positive'
             elif connection_status_string == '5':
                 connection_status = 'positive'
-            elif len(connection_status_string)!=0:
-                try:    
-                    row_object = ingest_errors.objects.get(field='Connection?',value=connection_status_string,filename='conndata.csv',file_row_num=row_num,comment='invalid connection value')
+            elif len(connection_status_string) != 0:
+                try:
+                    row_object = ingest_errors.objects.get(field='Connection?', value=connection_status_string,
+                                                           filename='conndata.csv', file_row_num=row_num,
+                                                           comment='invalid connection value')
                 except ingest_errors.DoesNotExist:
-                    row_object = ingest_errors(field='Connection?',value=connection_status_string,filename='conndata.csv',file_row_num=row_num,comment='invalid connection value')
+                    row_object = ingest_errors(field='Connection?', value=connection_status_string,
+                                               filename='conndata.csv', file_row_num=row_num,
+                                               comment='invalid connection value')
                     row_object.save()
                 continue
             else:
                 continue
             connection_locations = connection_location_string.split(';')
-            references= reference_id_string.split(';')
+            references = reference_id_string.split(';')
             for connection_location in connection_locations:
-                if len(connection_location)!=0:
-                    connection_location=connection_location.strip()
+                if len(connection_location) != 0:
+                    connection_location = connection_location.strip()
                     # if not exists create connection
                     try:
-                        row_object = Conndata.objects.get(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location)
+                        row_object = Conndata.objects.get(Type1_id=Type1_id, Type2_id=Type2_id,
+                                                          connection_status=connection_status,
+                                                          connection_location=connection_location)
                     except Conndata.DoesNotExist:
-                        row_object = Conndata(Type1_id=Type1_id,Type2_id=Type2_id,connection_status=connection_status,connection_location=connection_location)
+                        row_object = Conndata(Type1_id=Type1_id, Type2_id=Type2_id, connection_status=connection_status,
+                                              connection_location=connection_location)
                         row_object.save()
-                    Connection_id=row_object.id
+                    Connection_id = row_object.id
                     for reference in references:
-                        if len(reference)!=0:
-                            reference=reference.strip()
-                            ConnFragment_id=None
+                        if len(reference) != 0:
+                            reference = reference.strip()
+                            ConnFragment_id = None
                             # if reference is not a number 
-                            if not(reference.isdigit()):
+                            if not (reference.isdigit()):
                                 try:
-                                    row_object = ingest_errors.objects.get(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='invalid reference value')
+                                    row_object = ingest_errors.objects.get(field='RefIDs', value=reference,
+                                                                           filename='conndata.csv',
+                                                                           file_row_num=row_num,
+                                                                           comment='invalid reference value')
                                 except ingest_errors.DoesNotExist:
-                                    row_object = ingest_errors(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='invalid reference value')
+                                    row_object = ingest_errors(field='RefIDs', value=reference, filename='conndata.csv',
+                                                               file_row_num=row_num, comment='invalid reference value')
                                     row_object.save()
                                 continue
                             # find whether given reference id exists in the database.
                             try:
                                 row_object = ConnFragment.objects.get(original_id=reference)
-                                ConnFragment_id=row_object.id
+                                ConnFragment_id = row_object.id
                             except ConnFragment.DoesNotExist:
                                 try:
-                                    row_object = ingest_errors.objects.get(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='missing reference in conn_fragment.csv')                                    
+                                    row_object = ingest_errors.objects.get(field='RefIDs', value=reference,
+                                                                           filename='conndata.csv',
+                                                                           file_row_num=row_num,
+                                                                           comment='missing reference in conn_fragment.csv')
                                 except ingest_errors.DoesNotExist:
-                                    row_object = ingest_errors(field='RefIDs',value=reference,filename='conndata.csv',file_row_num=row_num,comment='missing reference in conn_fragment.csv')
+                                    row_object = ingest_errors(field='RefIDs', value=reference, filename='conndata.csv',
+                                                               file_row_num=row_num,
+                                                               comment='missing reference in conn_fragment.csv')
                                     row_object.save()
                             # Add mapping between connection and reference. If reference not found skip that mapping
-                            if ConnFragment_id!=None:
+                            if ConnFragment_id != None:
                                 try:
-                                    row_object = ConndataFragmentRel.objects.get(Conndata_id=Connection_id,ConnFragment_id=ConnFragment_id)
+                                    row_object = ConndataFragmentRel.objects.get(Conndata_id=Connection_id,
+                                                                                 ConnFragment_id=ConnFragment_id)
                                 except ConndataFragmentRel.DoesNotExist:
-                                    row_object = ConndataFragmentRel(Conndata_id=Connection_id,ConnFragment_id=ConnFragment_id)
+                                    row_object = ConndataFragmentRel(Conndata_id=Connection_id,
+                                                                     ConnFragment_id=ConnFragment_id)
                                     row_object.save()
-        
+
     # ingests conn_fragment.csv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, ConnFragment tables
     def connfragment_to_connfragment(self):
-        row_num=1           # starting header offset
-        row_object  = EvidenceFragmentRel.objects.last()
-        fragment_id = row_object.Fragment_id + 1                  # initialize from last fragment entry
+        row_num = 1  # starting header offset
+        row_object = EvidenceFragmentRel.objects.last()
+        fragment_id = row_object.Fragment_id + 1  # initialize from last fragment entry
         for row in self.rows:
-            row_num=row_num+1 
+            row_num = row_num + 1
             # set reference_id
-            reference_id                   = None
-            location_in_reference          = None
-            quote                          = None
-            pmid_isbn                      = None
-            article_id                     = None
-            ref_id=row['RefID'].strip()
+            reference_id = None
+            location_in_reference = None
+            quote = None
+            pmid_isbn = None
+            article_id = None
+            ref_id = row['RefID'].strip()
             try:
                 reference_id = int(ref_id)
             except Exception:
-                if len(ref_id)!=0:
+                if len(ref_id) != 0:
                     try:
-                        row_object = ingest_errors.objects.get(field='RefID',value=ref_id,file_row_num=row_num,filename='conn_fragment.csv')
+                        row_object = ingest_errors.objects.get(field='RefID', value=ref_id, file_row_num=row_num,
+                                                               filename='conn_fragment.csv')
                     except ingest_errors.DoesNotExist:
-                        row_object = ingest_errors(field='RefID',value=ref_id,filename='conn_fragment.csv',file_row_num=row_num,comment='invalid reference value')
+                        row_object = ingest_errors(field='RefID', value=ref_id, filename='conn_fragment.csv',
+                                                   file_row_num=row_num, comment='invalid reference value')
                         row_object.save()
                 continue
             try:
@@ -508,14 +566,16 @@ class Map:
                     location_in_reference = None
             except Exception:
                 location_in_reference = None
-            pmid_isbn_value=row['PMID/ISBN'].strip()
+            pmid_isbn_value = row['PMID/ISBN'].strip()
             try:
-                pmid_isbn = int(pmid_isbn_value.replace('-',''))
+                pmid_isbn = int(pmid_isbn_value.replace('-', ''))
             except Exception:
                 try:
-                    row_object = ingest_errors.objects.get(field='PMID/ISBN',value=pmid_isbn_value,file_row_num=row_num,filename='conn_fragment.csv')
+                    row_object = ingest_errors.objects.get(field='PMID/ISBN', value=pmid_isbn_value,
+                                                           file_row_num=row_num, filename='conn_fragment.csv')
                 except ingest_errors.DoesNotExist:
-                    row_object = ingest_errors(field='PMID/ISBN',value=pmid_isbn_value,filename='conn_fragment.csv',file_row_num=row_num,comment='invalid pmid/isbn value')
+                    row_object = ingest_errors(field='PMID/ISBN', value=pmid_isbn_value, filename='conn_fragment.csv',
+                                               file_row_num=row_num, comment='invalid pmid/isbn value')
                     row_object.save()
                 pmid_isbn = None
             if pmid_isbn == None:
@@ -529,44 +589,42 @@ class Map:
                     article_id = None
                 else:
                     article_id = row_object.id
-            if (article_id == None and pmid_isbn!= None):
-                    # write new pmid_isbn to article_not_found      
-                    try:
-                        row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn_value)
-                    except article_not_found.DoesNotExist:
-                        row_object = article_not_found(pmid_isbn=pmid_isbn_value)
-                        row_object.save()
+            if (article_id == None and pmid_isbn != None):
+                # write new pmid_isbn to article_not_found
+                try:
+                    row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn_value)
+                except article_not_found.DoesNotExist:
+                    row_object = article_not_found(pmid_isbn=pmid_isbn_value)
+                    row_object.save()
             # set Fragment
             try:
                 row_object = ConnFragment.objects.get(original_id=reference_id)
                 continue
             except ConnFragment.DoesNotExist:
                 row_object = ConnFragment(
-                    id                     = fragment_id,
-                    original_id            = reference_id,
-                    quote                  = quote,
-                    page_location          = location_in_reference,
-                    pmid_isbn              = pmid_isbn,
+                    id=fragment_id,
+                    original_id=reference_id,
+                    quote=quote,
+                    page_location=location_in_reference,
+                    pmid_isbn=pmid_isbn,
                 )
                 row_object.save()
-                fragment_id=row_object.id
+                fragment_id = row_object.id
                 row_object = Evidence()
                 row_object.save()
-                Evidence_id =row_object.id
+                Evidence_id = row_object.id
                 row_object = EvidenceFragmentRel(
-                    Evidence_id = Evidence_id,
-                    Fragment_id = fragment_id
+                    Evidence_id=Evidence_id,
+                    Fragment_id=fragment_id
                 )
                 row_object.save()
                 row_object = ArticleEvidenceRel(
-                    Article_id  = article_id,
-                    Evidence_id = Evidence_id
+                    Article_id=article_id,
+                    Evidence_id=Evidence_id
                 )
                 row_object.save()
                 fragment_id = fragment_id + 1
             # end set fragment
-            
-
 
     # ingests epdata.csv and populates ArticleEvidenceRel, ArticleSynonymRel, Epdata, EpdataEvidenceRel, Evidence, EvidenceEvidenceRel, EvidenceFragmentRel, EvidencePropertyTypeRel, Fragment, Property
     def epdata_to_epdata(self):
@@ -580,76 +638,141 @@ class Map:
     # ingests morph_fragment.csv, marker_fragment.csv, ep_fragment.csv and populates ArticleEvidenceRel, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel(updates Fragment_id field)
     def fragment_to_fragment(self):
         fragment_id = 1
-        for row in self.rows: # is this a morph_fragment.csv file or a marker_fragment.csv file
-            is_morph_fragment_csv          = 0
-            saw_protocol_reference         = 0
+        for row in self.rows:  # is this a morph_fragment.csv file or a marker_fragment.csv file
+            is_morph_fragment_csv = 0
+            saw_protocol_reference = 0
             saw_ephys_parameters_extracted = 0
             try:
                 protocol_reference = row['Protocol Reference']
                 saw_protocol_reference = 1
-                row_object  = EvidenceFragmentRel.objects.last()
-                fragment_id = row_object.Fragment_id + 1 # initialize from last morph_fragment.csv entry
+                row_object = EvidenceFragmentRel.objects.last()
+                fragment_id = row_object.Fragment_id + 1  # initialize from last morph_fragment.csv entry
             except Exception:
                 try:
                     ephys_parameters_extracted = row['Ephys Parameters Extracted']
                     saw_ephys_parameters_extracted = 1
-                    row_object  = EvidenceFragmentRel.objects.last()
-                    fragment_id = row_object.Fragment_id + 1 # initialize from last morph_fragment.csv entry
+                    row_object = EvidenceFragmentRel.objects.last()
+                    fragment_id = row_object.Fragment_id + 1  # initialize from last morph_fragment.csv entry
                 except Exception:
                     is_morph_fragment_csv = 1
                     row_object = Evidence()
                     row_object.save()
                     fragment_id = 1
             break
-        self.f.seek(0) # rewind the file
+        self.f.seek(0)  # rewind the file
         self.rows = DictReader(self.f)
         for row in self.rows:
-            fragment_id = FragmentStringField.parse_and_save(row,fragment_id,saw_protocol_reference,saw_ephys_parameters_extracted)
-        #end for row in self.rows:
+            fragment_id = FragmentStringField.parse_and_save(row, fragment_id, saw_protocol_reference,
+                                                             saw_ephys_parameters_extracted)
+        # end for row in self.rows:
         # conditionally update Fragment_id fields in FragmentTypeRel
         if is_morph_fragment_csv == 1:
             FragmentTypeRel_row_objects = FragmentTypeRel.objects.all()
             for FragmentTypeRel_row_object in FragmentTypeRel_row_objects:
                 try:
-                    row_object  = Attachment.objects.get(id=FragmentTypeRel_row_object.id)
+                    row_object = Attachment.objects.get(id=FragmentTypeRel_row_object.id)
                     original_id = row_object.original_id
-                    row_object  = Fragment.objects.get(original_id=original_id)
+                    row_object = Fragment.objects.get(original_id=original_id)
                     Fragment_id = row_object.id
-                    row_object  = FragmentTypeRel.objects.filter(id=FragmentTypeRel_row_object.id).update(Fragment_id=Fragment_id)
+                    row_object = FragmentTypeRel.objects.filter(id=FragmentTypeRel_row_object.id).update(
+                        Fragment_id=Fragment_id)
                 except Fragment.DoesNotExist:
                     row_object = None
-        #end conditionally update Fragment_id fields in FragmentTypeRel
-    #end def fragment_to_fragment(self):
+        # end conditionally update Fragment_id fields in FragmentTypeRel
+
+    # end def fragment_to_fragment(self):
+
+    def synprofrag_to_synprofrag(self):
+        fragment_id = None
+        if (self.synpro=='nbyk'):
+            fragment_id = 20000 # high enough to avoid overlaps
+        elif (self.synpro=='nbym'):
+            #row_object = EvidenceFragmentRel.objects.last()
+            #fragment_id = row_object.Fragment_id + 1  # initialize from last morph_fragment.csv entry                        
+            fragment_id = 30000 # high enough to avoid overlaps
+            ''' This is reserved for future use
+            fragment_id = row_object.Fragment_id
+            row_object2 = SynproEvidenceFragmentRel.objects.last()
+            fragment_id = fragment_id + row_object2 + 1  # initialize from last morph_fragment.csv entry                        
+            '''
+            # fragment_id = 1
+
+        self.f.seek(0)  # rewind the file
+        self.rows = DictReader(self.f)
+        for row in self.rows:
+            fragment_id = SynproStringField.parse_and_save(self, row, fragment_id)            
 
     # ingests markerdata.csv and populates ArticleSynonymRel, Evidence, EvidenceEvidenceRel, EvidenceMarkerdataRel, EvidencePropertyTypeRel, Markerdata, Property
     def markerdata_to_markerdata(self):
-        count=0
+        count = 0
         for row in self.rows:
             try:
-                MarkerdataStringField.parse_and_save(row,count)
-                count=count+1
+                MarkerdataStringField.parse_and_save(row, count)
+                count = count + 1
             except Exception:
                 break
-            
 
     # ingests morphdata.csv and populates ArticleSynonymRel, EvidencePropertyTypeRel, Property
     def morphdata_to_morphdata(self):
-        #intial lines skipped still actual rows
-        count=9
+        # intial lines skipped still actual rows
+        count = 9
         MorphdataPropertyRecords.save()
         for row in self.rows:
             try:
-                MorphdataStringField.parse_and_save(row,count)
-                count=count+1
+                MorphdataStringField.parse_and_save(row, count)
+                count = count + 1
             except Exception:
                 break
 
+
+    def synprodata_to_synprodata(self):
+        try:
+            for row in self.rows:
+                try:
+                    property_id=row['property_ID']
+                except Exception:
+                    property_id=0
+                try:
+                    type_id=row['type_ID']
+                except Exception:
+                    type_id=0    
+                try:
+                    source_id=row['source_id']
+                except Exception:
+                    source_id=0
+                try:
+                    target_id=row['target_id']
+                except Exception:
+                    target_id=0
+                user_object = SynproEvidencePropertyTypeRel(
+                    Evidence_id=row['evidence_ID'],
+                    Property_id=property_id,
+                    source_id=source_id,
+                    target_id=target_id,
+                    Type_id=type_id,
+                    Article_id=row['Article_id'],
+                    priority=row['priority'],
+                    conflict_note=row['conflict_note'],
+                    unvetted=row['unvetted'],
+                    linking_quote=row['linking_quote'],
+                    interpretation_notes=row['interpretation_notes'],
+                    property_type_explanation=row['property_type_explanation'],
+                    pc_flag=row['pc_flag'],
+                    soma_pcl_flag=row['soma_pcl_flag'],
+                    ax_de_pcl_flag=row['ax_de_pcl_flag'],
+                    perisomatic_targeting_flag=row['perisomatic_targeting_flag'],
+                    supplemental_pmids=row['supplemental_pmids']
+                )                
+                user_object.save()
+        except Exception as e:
+            print(e)
+
     # ingests notes.csv and populates Type(updates notes field)
     def notes_to_type(self):
-        module_dir        = os.path.dirname(__file__)  # get current directory
-        #notes_csv         = self.request.FILES['file'].name
-        #notes_csv_split   = notes_csv.split('.')
-        #notes_folder_name = notes_csv_split[0]
+        module_dir = os.path.dirname(__file__)  # get current directory
+        # notes_csv         = self.request.FILES['file'].name
+        # notes_csv_split   = notes_csv.split('.')
+        # notes_folder_name = notes_csv_split[0]
         notes_folder_name = 'packet_notes'
         notes_folder_path = os.path.join(module_dir, notes_folder_name)
         for row in self.rows:
@@ -662,9 +785,10 @@ class Map:
             if notes_file != None:
                 if len(notes_file) >= len('nnnn.txt'):
                     notes_folder_path_notes_file = notes_folder_path + '/' + notes_file
-                    #example before: notes_folder_path_notes_file = '/Users/djh/wd/krasnow/csv2db/lib/packet_notes/1000.txt'
-                    notes_folder_path_notes_file = re.sub(r'csv2db/lib', r'static/csv2db/dat', notes_folder_path_notes_file)
-                    #example after : notes_folder_path_notes_file = '/Users/djh/wd/krasnow/static/csv2db/dat/packet_notes/1000.txt'
+                    # example before: notes_folder_path_notes_file = '/Users/djh/wd/krasnow/csv2db/lib/packet_notes/1000.txt'
+                    notes_folder_path_notes_file = re.sub(r'csv2db/lib', r'static/csv2db/dat',
+                                                          notes_folder_path_notes_file)
+                    # example after : notes_folder_path_notes_file = '/Users/djh/wd/krasnow/static/csv2db/dat/packet_notes/1000.txt'
                     try:
                         fs = codecs.open(notes_folder_path_notes_file, 'r', 'utf-8')
                         notes_txt = fs.read()
@@ -675,20 +799,22 @@ class Map:
 
     # ingests onhold_types_pmids.csv and populates Onhold
     def onhold_to_onhold(self):
-        count=2
+        count = 2
         for row in self.rows:
             subregion = None
-            type_id   = None
+            type_id = None
             pmid_isbn = None
-            name      = None
+            name = None
             try:
                 subregion = row['Subregion']
-                #type id
+                # type id
                 try:
                     type_id = int(row['Unique ID'])
                 except ValueError:
-                    type_id=None
-                    row_object = ingest_errors(field='Unique ID',value=row['Unique ID'],filename='onhold_types_pmids.csv',file_row_num=count,comment='invalid Unique id value')
+                    type_id = None
+                    row_object = ingest_errors(field='Unique ID', value=row['Unique ID'],
+                                               filename='onhold_types_pmids.csv', file_row_num=count,
+                                               comment='invalid Unique id value')
                     row_object.save()
                     continue
 
@@ -696,8 +822,8 @@ class Map:
                 try:
                     name = row['Type'].strip()
                     pmid = row['PMID'].strip()
-                    pmid_isbn=int(pmid.replace('-',''))
-                    #check if article exists for this pmid
+                    pmid_isbn = int(pmid.replace('-', ''))
+                    # check if article exists for this pmid
                     try:
                         count_ids = Article.objects.filter(pmid_isbn=pmid_isbn).order_by('id').count()
                     except Article.DoesNotExist:
@@ -706,29 +832,31 @@ class Map:
                         except article_not_found.DoesNotExist:
                             row_object = article_not_found(pmid_isbn=pmid_isbn)
                             row_object.save()
-                    if count_ids==0:
+                    if count_ids == 0:
                         try:
                             row_object = article_not_found.objects.get(pmid_isbn=pmid_isbn)
                         except article_not_found.DoesNotExist:
                             row_object = article_not_found(pmid_isbn=pmid_isbn)
                             row_object.save()
                 except ValueError:
-                    pmid_isbn=None
-                    row_object = ingest_errors(field='PMID',value=row['PMID'],filename='onhold_types_pmids.csv',file_row_num=count,comment='invalid PMID value')
-                    row_object.save()  
-                    continue  
-                    
+                    pmid_isbn = None
+                    row_object = ingest_errors(field='PMID', value=row['PMID'], filename='onhold_types_pmids.csv',
+                                               file_row_num=count, comment='invalid PMID value')
+                    row_object.save()
+                    continue
+
                 row_object = Onhold(
-                    Type_id   = type_id,
-                    subregion = subregion,
-                    pmid_isbn = pmid_isbn,
-                    name      = name
+                    Type_id=type_id,
+                    subregion=subregion,
+                    pmid_isbn=pmid_isbn,
+                    name=name
                 )
                 row_object.save()
             except Exception as e:
-                row_object = ingest_errors(field='',value='',filename='onhold_types_pmids.csv',file_row_num=count,comment=str(e))
+                row_object = ingest_errors(field='', value='', filename='onhold_types_pmids.csv', file_row_num=count,
+                                           comment=str(e))
                 row_object.save()
-            count=count+1
+            count = count + 1
 
     # ingests synonym.csv and populates Synonym, SynonymTypeRel
     def synonym_to_synonym(self):
@@ -741,14 +869,14 @@ class Map:
             except ValueError:
                 unique_id = None
             row_object = Synonym(
-                name    = cited_names,
-                cell_id = unique_id
+                name=cited_names,
+                cell_id=unique_id
             )
             row_object.save()
             # write SynonymTypeRel record
             Synonym_id = row_object.id
-            Type_id    = row_object.cell_id
-            row_object = SynonymTypeRel(Synonym_id=Synonym_id,Type_id=Type_id)
+            Type_id = row_object.cell_id
+            row_object = SynonymTypeRel(Synonym_id=Synonym_id, Type_id=Type_id)
             row_object.save()
 
     # ingests term.csv and populates Term
@@ -795,19 +923,19 @@ class Map:
             if len(control) == 0:
                 control = None
             row_object = Term(
-                parent          = parent,
-                concept         = concept,
-                term            = term,
-                resource_rank   = resource_rank,
-                resource        = resource,
-                portal          = portal,
-                repository      = repository,
-                unique_id       = unique_id,
-                definition_link = definition_link,
-                definition      = definition,
-                protein_gene    = protein_gene,
-                human_rat       = human_rat,
-                control         = control
+                parent=parent,
+                concept=concept,
+                term=term,
+                resource_rank=resource_rank,
+                resource=resource,
+                portal=portal,
+                repository=repository,
+                unique_id=unique_id,
+                definition_link=definition_link,
+                definition=definition,
+                protein_gene=protein_gene,
+                human_rat=human_rat,
+                control=control
             )
             row_object.save()
 
@@ -818,7 +946,7 @@ class Map:
             if status == 'active':
                 id = int(row['id'])
                 try:
-                    position             = int(row['position'])
+                    position = int(row['position'])
                     position_HC_standard = int(row['position_HC_standard'])
                 except ValueError:
                     position = None
@@ -837,99 +965,271 @@ class Map:
                 short_name = row['short_name']
                 if len(short_name) == 0:
                     short_name = None
-                if dev == 'true': # overide for dev site
-                    position   = position_HC_standard
+                if dev == 'true':  # overide for dev site
+                    position = position_HC_standard
                     short_name = intermediate_name
                 excit_inhib = row['excit_inhib']
                 notes = None
                 try:
                     row_object = Type.objects.get(id=id)
-                    row_object = Type.objects.filter(id=id).update(position=position,nickname=short_name)
+                    row_object = Type.objects.filter(id=id).update(position=position, nickname=short_name)
                 except Type.DoesNotExist:
                     row_object = Type(
-                        id                = id,
-                        position          = position,
-                        explanatory_notes = explanatory_notes,
-                        subregion         = subregion,
-                        name              = full_name,
-                        nickname          = short_name,
-                        excit_inhib       = excit_inhib,
-                        status            = status,
-                        notes             = notes
+                        id=id,
+                        position=position,
+                        explanatory_notes=explanatory_notes,
+                        subregion=subregion,
+                        name=full_name,
+                        nickname=short_name,
+                        excit_inhib=excit_inhib,
+                        status=status,
+                        notes=notes
                     )
                     row_object.save()
-            #end if status == 'active':
-        #end for row in self.rows:
-    #end def type_to_type(self):
+            # end if status == 'active':
+        # end for row in self.rows:
+
+    # end def type_to_type(self):
     def izhmodels_to_izhmodels(self):
         try:
             for row in self.rows:
                 izhmodels_single_object = izhmodels_single(
-                   unique_id           = row['uniqueID'].replace("-",""),
-                   subtype_id          = row['subtypeID'],
-                   name                = row['name'],
-                   preferred           = row['preferred'],
-                   k                   = row['k'],
-                   a                   = row['a'],
-                   b                   = row['b'],
-                   d                   = row['d'],
-                   C                   = row['C'],
-                   Vr                  = row['Vr'],
-                   Vt                  = row['Vt'],
-                   Vpeak               = row['Vpeak'],
-                   Vmin                = row['Vmin'],
-                   k0                  = row['k0'],
-                   a0                  = row['a0'],
-                   b0                  = row['b0'],
-                   d0                  = row['d0'],
-                   C0                  = row['C0'],
-                   Vr0                 = row['Vr0'],
-                   Vt0                 = row['Vt0'],
-                   Vpeak0              = row['Vpeak0'],
-                   Vmin0               = row['Vmin0'],
-                   k1                  = row['k1'],
-                   a1                  = row['a1'],
-                   b1                  = row['b1'],
-                   d1                  = row['d1'],
-                   C1                  = row['C1'],
-                   Vr1                 = row['Vr1'],
-                   Vt1                 = row['Vt1'],
-                   Vpeak1              = row['Vpeak1'],
-                   Vmin1               = row['Vmin1'],
-                   G0                  = row['G0'],
-                   P0                  = row['P0'],
-                   k2                  = row['k2'],
-                   a2                  = row['a2'],
-                   b2                  = row['b2'],
-                   d2                  = row['d2'],
-                   C2                  = row['C2'],
-                   Vr2                 = row['Vr2'],
-                   Vt2                 = row['Vt2'],
-                   Vpeak2              = row['Vpeak2'],
-                   Vmin2               = row['Vmin2'],
-                   G1                  = row['G1'],
-                   P1                  = row['P1'],
-                   k3                  = row['k3'],
-                   a3                  = row['a3'],
-                   b3                  = row['b3'],
-                   d3                  = row['d3'],
-                   C3                  = row['C3'],
-                   Vr3                 = row['Vr3'],
-                   Vt3                 = row['Vt3'],
-                   Vpeak3              = row['Vpeak3'],
-                   Vmin3               = row['Vmin3'],
-                   G2                  = row['G2'],
-                   P2                  = row['P2'])
+                    unique_id=row['uniqueID'].replace("-", ""),
+                    subtype_id=row['subtypeID'],
+                    name=row['name'],
+                    preferred=row['preferred'],
+                    k=row['k'],
+                    a=row['a'],
+                    b=row['b'],
+                    d=row['d'],
+                    C=row['C'],
+                    Vr=row['Vr'],
+                    Vt=row['Vt'],
+                    Vpeak=row['Vpeak'],
+                    Vmin=row['Vmin'],
+                    k0=row['k0'],
+                    a0=row['a0'],
+                    b0=row['b0'],
+                    d0=row['d0'],
+                    C0=row['C0'],
+                    Vr0=row['Vr0'],
+                    Vt0=row['Vt0'],
+                    Vpeak0=row['Vpeak0'],
+                    Vmin0=row['Vmin0'],
+                    k1=row['k1'],
+                    a1=row['a1'],
+                    b1=row['b1'],
+                    d1=row['d1'],
+                    C1=row['C1'],
+                    Vr1=row['Vr1'],
+                    Vt1=row['Vt1'],
+                    Vpeak1=row['Vpeak1'],
+                    Vmin1=row['Vmin1'],
+                    G0=row['G0'],
+                    P0=row['P0'],
+                    k2=row['k2'],
+                    a2=row['a2'],
+                    b2=row['b2'],
+                    d2=row['d2'],
+                    C2=row['C2'],
+                    Vr2=row['Vr2'],
+                    Vt2=row['Vt2'],
+                    Vpeak2=row['Vpeak2'],
+                    Vmin2=row['Vmin2'],
+                    G1=row['G1'],
+                    P1=row['P1'],
+                    k3=row['k3'],
+                    a3=row['a3'],
+                    b3=row['b3'],
+                    d3=row['d3'],
+                    C3=row['C3'],
+                    Vr3=row['Vr3'],
+                    Vt3=row['Vt3'],
+                    Vpeak3=row['Vpeak3'],
+                    Vmin3=row['Vmin3'],
+                    G2=row['G2'],
+                    P2=row['P2'])
                 izhmodels_single_object.save()
         except Exception as e:
             print(e)
-            
+
     def user_to_user(self):
         try:
             for row in self.rows:
                 user_object = user(
-                   password           = row['password'],
-                   permission          = row['permission'])
+                    password=row['password'],
+                    permission=row['permission'])
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def attachment_neurite(self):
+        try:
+            for row in self.rows:
+                user_object = attachment_neurite(
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal_or_Book=row['Journal/Book'],
+                    year=row['Year'],
+                    PMID_or_ISBN=row['PMID/ISBN'],
+                    cell_identifier=row['Cell Identifier'],
+                    neurite=row['Neurite'],
+                    neurite_ID=row['Neurite_ID'],
+                    name_of_file_containing_figure=row['Name of file containing figure'],
+                    reference_ID=row['Reference_ID']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+    def neurite_quantified(self):
+        try:
+            for row in self.rows:
+                user_object = neurite_quantified(
+                    unique_ID=row['Unique_ID'],
+                    subregion=row['Subregion'],
+                    e_or_i=row['E/I'],
+                    axonal_dendritic_pattern=row['Axonal-dendritic pattern (ax=1, de=2)'],
+                    p=row['p'],
+                    Projection_patterning=row['Projection patterning'],
+                    hippocampome_neuronal_class = row['Hippocampome neuronal class'],
+                    neurite = row['Neurite'],
+                    neurite_ID=row['Neurite_ID'],
+                    total_length=row['Total_length'],
+                    filtered_total_length=row['Filtered_Total_length'],
+                    percent_of_neurite_tree=row['%_of_neurite_tree'],
+                    morphology_pattern=row['Morphology pattern'],
+                    mean_path_length=row['Mean_path_length'],
+                    entry_point=row['Entry point'],
+                    average=row['Average'],
+                    convexhull = row['Convex Hull'],
+                    reference_ID=row['Reference_ID'],
+                    location_in_reference=row['Location in reference'],
+                    reference=row['Reference'],
+                    morphological_notes= row['Morphological notes']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+
+    def neurite(self):
+        try:
+            for row in self.rows:
+                user_object = neurite(
+                    referenceID=row['ReferenceID'],
+                    cellID=row['CellID'],
+                    cellType=row['CellType'],
+                    material_used=row['Material Used'],
+                    location_in_reference=row['Location in reference'],
+                    interpretation=row['Interpretation'],
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal_or_Book=row['Journal/Book'],
+                    year=row['Year'],
+                    PMID_or_ISBN=row['PMID/ISBN'],
+                    pmid_isbn_page=row['pmid_isbn_page'],
+                    area=row['Area'],
+                    soma_state=row['Soma_state'],
+                    soma=row['Soma'],
+                    species=row['Species'],
+                    strain=row['Strain'],
+                    type=row['Type'],
+                    gender=row['Gender'],
+                    age=row['Age'],
+                    slice=row['Slice'],
+                    recording=row['Recording'],
+                    labeled	=row['Labeled'],
+                    markers	=row['Markers'],
+                    input =row['Input'],
+                    output	 =row['Output'],
+                    sections   =row['Sections'])
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+
+    def potential_synapses(self):
+        try:
+            for row in self.rows:
+                user_object = potential_synapses(
+                    source_ID=row['Source_ID'],
+                    source_Name=row['Source_Name'],
+                    source_E_or_I=row['Source_E/I'],
+                    target_ID=row['Target_ID'],
+                    target_Name=row['Target_Name'],
+                    target_E_or_I=row['Target_E/I'],
+                    type=row['Type'],
+                    layers=row['Layers'],
+                    neurite=row['Neurite'],
+                    neurite_id=row['Neurite ID'],
+                    potential_synapses=row['Potential synapses'],
+                    connection=row['Connection?'],
+                    ES=row['ES'],
+                    ES_PMID	=row['ES PMID'],
+                    refIDs	                                   =row['RefIDs'],
+                    notes                                      =row['Notes'],
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+
+    def number_of_contacts(self):
+        try:
+            for row in self.rows:
+                user_object = number_of_contacts(
+                    source_ID=row['Source_ID'],
+                    source_Name=row['Source_Name'],
+                    source_E_or_I=row['Source_E/I'],
+                    target_ID=row['Target_ID'],
+                    target_Name=row['Target_Name'],
+                    target_E_or_I=row['Target_E/I'],
+                    type=row['Type'],
+                    layers=row['Layers'],
+                    neurite=row['Neurite'],
+                    neurite_id=row['Neurite ID'],
+                    potential_synapses=row['Potential synapses'],
+                    number_of_contacts=row['Number of contacts'],
+                    probability=row['Probability'],
+                    connection=row['Connection?'],
+                    ES=row['ES'],
+                    ES_PMID =row['ES PMID'],
+                    refIDs                                     =row['RefIDs'],
+                    notes                                      =row['Notes']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+
+    def attachment_connectivity(self):
+        try:
+            for row in self.rows:
+                user_object = attachment_connectivity(
+                    RefID=row['RefID'],
+                    source_ID=row['source_ID'],
+                    source_class=row['source_class'],
+                    target_ID=row['target_ID'],
+                    target_class=row['target_class'],
+                    Quote=row['Quote'],
+                    Location=row['Location'],
+                    Author=row['Author'],
+                    Title=row['Title'],
+                    Journal=row['Journal'],
+                    Year=row['Year'],
+                    PMID_or_ISBN=row['PMID/ISBN'],
+                    pmid_isbn_page=row['pmid_isbn_page'],
+                    UID=row['UID'],
+                    Unknown=row['Unknown'],
+                    Figure=row['Figure'],
+                    HcoRefID=row['HcoRefID']
+                )
                 user_object.save()
         except Exception as e:
             print(e)
