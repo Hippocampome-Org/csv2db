@@ -815,9 +815,10 @@ class SynproFragment(models.Model):
     linking_quote          = models.TextField(null=True)
     linking_page_location  = models.CharField(max_length=256, null=True)
     species_tag            = models.CharField(max_length=512, null=True)
-    species_descriptor     = models.CharField(max_length=512, null=True)
+    strain                 = models.CharField(max_length=512, null=True)
     age_weight             = models.CharField(max_length=512, null=True)
     protocol               = models.CharField(max_length=512, null=True)
+    cell_id              = models.BigIntegerField(null=True)
     class Meta:
         db_table = 'SynproFragment'
 
@@ -859,3 +860,43 @@ class SynproEvidenceFragmentRel(models.Model):
     Fragment_id = models.IntegerField(db_index=True, unique=False, null=True)
     class Meta:
         db_table = 'SynproEvidenceFragmentRel'
+
+class SynproPropParcelRel(models.Model):
+    id          = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    property_id = models.IntegerField(null=True)
+    property_neurite             = models.TextField(max_length=1000, null=True)
+    property_desc             = models.TextField(max_length=1000, null=True)
+    parcel             = models.TextField(max_length=1000, null=True)
+    neurite_quant_neurite             = models.TextField(max_length=1000, null=True)
+    class Meta:
+        db_table = 'SynproPropParcelRel'
+
+class SynproTypeTypeRel(models.Model):
+    id          = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    type_name_short             = models.TextField(max_length=1000, null=True)
+    type_name             = models.TextField(max_length=1000, null=True)
+    neur_quant_type_name             = models.TextField(max_length=1000, null=True)
+    type_nickname             = models.TextField(max_length=1000, null=True)
+    type_id = models.BigIntegerField(null=True)
+    subregion             = models.TextField(max_length=1000, null=True)
+    class Meta:
+        db_table = 'SynproTypeTypeRel'
+
+class attachment_neurite_rar(models.Model):
+    id          = models.AutoField(primary_key=True)
+    dt          = models.DateTimeField(auto_now_add=True)
+    authors          = models.TextField(max_length=1000, null=True)
+    title          = models.TextField(max_length=1000, null=True)
+    journal_book          = models.TextField(max_length=1000, null=True)
+    year          = models.BigIntegerField(null=True)
+    pmid_isbn          = models.BigIntegerField(null=True)
+    neuron_id          = models.BigIntegerField(null=True)
+    neurite_name          = models.TextField(max_length=1000, null=True)
+    neurite_id          = models.BigIntegerField(null=True)
+    rar_file          = models.TextField(max_length=1000, null=True)
+    reference_id          = models.BigIntegerField(null=True)
+
+    class Meta:
+        db_table = 'attachment_neurite_rar'

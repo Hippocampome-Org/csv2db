@@ -11,6 +11,7 @@ from ..models import ConnFragment, Evidence, EvidenceFragmentRel, Fragment, Frag
 from ..models import SynonymTypeRel, Term, Type, TypeTypeRel,potential_synapses, number_of_contacts,neurite
 from ..models import neurite_quantified, attachment_neurite, attachment_connectivity, EvidencePropertyTypeRel
 from ..models import SynproEvidencePropertyTypeRel, article_not_found, izhmodels_single, user
+from ..models import SynproPropParcelRel, SynproTypeTypeRel, attachment_neurite_rar
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
 from .markerdata_string_field import MarkerdataStringField
@@ -209,6 +210,12 @@ class Map:
             elif order == '35':
                 self.synpro='nbym'
                 Map.synprodata_to_synprodata(self)
+            elif order == '36':
+                Map.synpro_prop_parcel_rel(self)
+            elif order == '37':
+                Map.synpro_type_type_rel(self)
+            elif order == '38':
+                Map.attachment_neurite_rar(self)
             else:
                 pass
             try:
@@ -1229,6 +1236,56 @@ class Map:
                     Unknown=row['Unknown'],
                     Figure=row['Figure'],
                     HcoRefID=row['HcoRefID']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_prop_parcel_rel(self):
+        try:
+            for row in self.rows:
+                user_object = SynproPropParcelRel(
+                    property_id=row['property_id'],
+                    property_neurite=row['property_neurite'],
+                    property_desc=row['property_desc'],
+                    parcel=row['parcel'],
+                    neurite_quant_neurite=row['neurite_quant_neurite']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_type_type_rel(self):
+        try:
+            for row in self.rows:
+                user_object = SynproTypeTypeRel(
+                    type_name_short=row['type_name_short'],
+                    type_name=row['type_name'],
+                    neur_quant_type_name=row['neur_quant_type_name'],
+                    type_nickname=row['type_nickname'],
+                    type_id=row['type_id'],
+                    subregion=row['subregion']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def attachment_neurite_rar(self):
+        try:
+            for row in self.rows:
+                pmid_isbn = int(row['PMID/ISBN'].replace('-','')) # remove dashes
+                pmid_isbn = int(str(pmid_isbn).replace(' ','')) # remove spaces                
+                user_object = attachment_neurite_rar(
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal_book=row['Journal/Book'],
+                    year=row['Year'],
+                    pmid_isbn=pmid_isbn,
+                    neuron_id=row['Cell Identifier'],
+                    neurite_name=row['Neurite'],
+                    neurite_id=row['Neurite_ID'],
+                    rar_file=row['Name of file containing figure'],
+                    reference_id=row['Reference_ID']
                 )
                 user_object.save()
         except Exception as e:

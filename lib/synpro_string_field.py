@@ -208,9 +208,9 @@ class SynproStringField:
                 except Exception:
                     species_tag = None
                 try:
-                    species_descriptor = row['strain']
+                    strain = row['strain']
                 except Exception:
-                    species_descriptor = None
+                    strain = None
                 try:
                     age_weight = row['age']
                 except Exception:
@@ -219,6 +219,10 @@ class SynproStringField:
                     protocol = row['sections']
                 except Exception:
                     protocol = None
+                try:
+                    cell_id = row['unique_ID']
+                except Exception:
+                    cell_id = None
 
             attachment_type = 'synpro_figure'
 
@@ -243,9 +247,10 @@ class SynproStringField:
                 linking_quote          = linking_quote,
                 linking_page_location  = linking_page_location,
                 species_tag            = species_tag,
-                species_descriptor     = species_descriptor,
+                strain                 = strain,
                 age_weight             = age_weight,
-                protocol               = protocol
+                protocol               = protocol,
+                cell_id                = cell_id
             )
             try:
                 row_object.save()
