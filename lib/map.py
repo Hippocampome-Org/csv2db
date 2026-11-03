@@ -8,10 +8,15 @@ from datetime import datetime as dt
 from io import TextIOWrapper
 from ..models import Article, ArticleAuthorRel, ArticleEvidenceRel, Attachment, Author, Conndata, ConndataFragmentRel
 from ..models import ConnFragment, Evidence, EvidenceFragmentRel, Fragment, FragmentTypeRel, ingest_errors, Onhold, Synonym
-from ..models import SynonymTypeRel, Term, Type, TypeTypeRel,potential_synapses, number_of_contacts,neurite
+from ..models import SynonymTypeRel, Term, Type, TypeTypeRel, potential_synapses, number_of_contacts,neurite
 from ..models import neurite_quantified, attachment_neurite, attachment_connectivity, EvidencePropertyTypeRel
 from ..models import SynproEvidencePropertyTypeRel, article_not_found, izhmodels_single, user
 from ..models import SynproPropParcelRel, SynproTypeTypeRel, attachment_neurite_rar
+from ..models import SynproCP, SynproCPTotal, SynproNOC, SynproNOCTotal, SynproNoPS, SynproNPSTotal
+from ..models import SynproParcelVolumes, SynproSubLayers, SynproVolumesSelected, SynproIBD, SynproPairsOrder
+from ..models import phases, phases_fragment, attachment_phases, PhasesEvidenceTypeRel, PhasesEvidenceFragmentRel
+from ..models import counts, counts_fragment, CountsEvidenceTypeRel, CountsEvidenceFragmentRel, Epdata
+from ..models import attachment_counts, citations, Hippocampome_to_NMO, ModelDB_mapping
 from .epdata_string_field import EpdataPropertyRecords, EpdataStringField
 from .fragment_string_field import FragmentStringField
 from .markerdata_string_field import MarkerdataStringField
@@ -84,6 +89,7 @@ class Map:
 
     # ingests the all.csv file and processes the contained list of files
     def all_to_all(self):
+        markerdata_flag = 0
         process_order = []
         csv_filenames = []
         module_dir = os.path.dirname(__file__)  # get current directory
@@ -163,7 +169,7 @@ class Map:
             elif order == '13':
                 FiringPatternStringField.fp_fragment_to_fp_fragment(self)
             elif order == '14':
-                Map.markerdata_to_markerdata(self)
+                markerdata_flag = Map.markerdata_to_markerdata(self, markerdata_flag)
             elif order == '15':
                 Map.epdata_to_epdata(self)
             elif order == '16':
@@ -216,6 +222,54 @@ class Map:
                 Map.synpro_type_type_rel(self)
             elif order == '38':
                 Map.attachment_neurite_rar(self)
+            elif order == '39':
+                Map.synpro_cp(self)
+            elif order == '40':
+                Map.synpro_cp_total(self)
+            elif order == '41':
+                Map.synpro_noc(self)
+            elif order == '42':
+                Map.synpro_noc_total(self)
+            elif order == '43':
+                Map.synpro_nops(self)
+            elif order == '44':
+                Map.synpro_nps_total(self)
+            elif order == '45':
+                Map.synpro_parcel_volumes(self)
+            elif order == '46':
+                Map.synpro_sub_layers(self)
+            elif order == '47':
+                Map.synpro_volumes_selected(self)
+            elif order == '48':
+                Map.phases(self)
+            elif order == '49':
+                Map.phases_fragment(self)
+            elif order == '50':
+                Map.attachment_phases(self)
+            elif order == '51':
+                Map.phases_evidence_type_rel(self)                
+            elif order == '52':
+                Map.phases_evidence_fragment_rel(self)
+            elif order == '53':
+                Map.counts(self)
+            elif order == '54':
+                Map.counts_fragment(self)
+            elif order == '55':
+                Map.counts_evidence_type_rel(self)                
+            elif order == '56':
+                Map.counts_evidence_fragment_rel(self)
+            elif order == '57':
+                Map.attachment_counts(self)
+            elif order == '58':
+                Map.citations(self)
+            elif order == '59':
+                Map.Hippocampome_to_NMO(self)
+            elif order == '60':
+                Map.ModelDB_mapping(self)
+            elif order == '61':
+                Map.SynproIBD(self)
+            elif order == '62':
+                Map.SynproPairsOrder(self)
             else:
                 pass
             try:
@@ -427,7 +481,7 @@ class Map:
                 continue
             connection_status_string = row['Connection?']
             connection_status = 'potential'
-            if connection_status_string == '1':
+            if (connection_status_string == '1' or connection_status_string == '3' or connection_status_string == '4' or connection_status_string == '5'):
                 connection_status = 'positive'
             elif (connection_status_string == '-1' or connection_status_string == '0'):
                 connection_status = 'negative'
@@ -461,6 +515,8 @@ class Map:
             if connection_status_string == '1':
                 connection_status = 'positive'
             elif connection_status_string == '0':
+                connection_status = 'negative'
+            elif connection_status_string == '-1':
                 connection_status = 'negative'
             elif connection_status_string == '4':
                 connection_status = 'positive'
@@ -710,19 +766,21 @@ class Map:
             fragment_id = SynproStringField.parse_and_save(self, row, fragment_id)            
 
     # ingests markerdata.csv and populates ArticleSynonymRel, Evidence, EvidenceEvidenceRel, EvidenceMarkerdataRel, EvidencePropertyTypeRel, Markerdata, Property
-    def markerdata_to_markerdata(self):
+    def markerdata_to_markerdata(self, markerdata_flag):
         count = 0
         for row in self.rows:
             try:
-                MarkerdataStringField.parse_and_save(row, count)
+                MarkerdataStringField.parse_and_save(row, count, markerdata_flag)
                 count = count + 1
             except Exception:
                 break
+        markerdata_flag = 1
+        return markerdata_flag
 
     # ingests morphdata.csv and populates ArticleSynonymRel, EvidencePropertyTypeRel, Property
     def morphdata_to_morphdata(self):
         # intial lines skipped still actual rows
-        count = 9
+        count = 13
         MorphdataPropertyRecords.save()
         for row in self.rows:
             try:
@@ -733,46 +791,88 @@ class Map:
 
 
     def synprodata_to_synprodata(self):
-        try:
-            for row in self.rows:
-                try:
-                    property_id=row['property_ID']
-                except Exception:
-                    property_id=0
-                try:
-                    type_id=row['type_ID']
-                except Exception:
-                    type_id=0    
-                try:
-                    source_id=row['source_id']
-                except Exception:
-                    source_id=0
-                try:
-                    target_id=row['target_id']
-                except Exception:
-                    target_id=0
-                user_object = SynproEvidencePropertyTypeRel(
-                    Evidence_id=row['evidence_ID'],
-                    Property_id=property_id,
-                    source_id=source_id,
-                    target_id=target_id,
-                    Type_id=type_id,
-                    Article_id=row['Article_id'],
-                    priority=row['priority'],
-                    conflict_note=row['conflict_note'],
-                    unvetted=row['unvetted'],
-                    linking_quote=row['linking_quote'],
-                    interpretation_notes=row['interpretation_notes'],
-                    property_type_explanation=row['property_type_explanation'],
-                    pc_flag=row['pc_flag'],
-                    soma_pcl_flag=row['soma_pcl_flag'],
-                    ax_de_pcl_flag=row['ax_de_pcl_flag'],
-                    perisomatic_targeting_flag=row['perisomatic_targeting_flag'],
-                    supplemental_pmids=row['supplemental_pmids']
-                )                
-                user_object.save()
-        except Exception as e:
-            print(e)
+        if (self.synpro=='nbyk'):
+            try:
+                for row in self.rows:
+                    try:
+                        property_id=row['neurite_ID']
+                    except Exception:
+                        property_id=0
+                    try:
+                        type_id=row['type_ID']
+                    except Exception:
+                        type_id=0    
+                    try:
+                        source_id=row['source_id']
+                    except Exception:
+                        source_id=0
+                    try:
+                        target_id=row['target_id']
+                    except Exception:
+                        target_id=0
+                    user_object = SynproEvidencePropertyTypeRel(
+                        Evidence_id=row['evidence_ID'],
+                        Property_id=property_id,
+                        source_id=source_id,
+                        target_id=target_id,
+                        Type_id=type_id,
+                        Article_id=row['Article_id'],
+                        priority=row['priority'],
+                        conflict_note=row['conflict_note'],
+                        unvetted=row['unvetted'],
+                        linking_quote=row['linking_quote'],
+                        interpretation_notes=row['interpretation_notes'],
+                        property_type_explanation=row['property_type_explanation'],
+                        pc_flag=row['pc_flag'],
+                        soma_pcl_flag=row['soma_pcl_flag'],
+                        ax_de_pcl_flag=row['ax_de_pcl_flag'],
+                        perisomatic_targeting_flag=row['perisomatic_targeting_flag'],
+                        supplemental_pmids=row['supplemental_pmids']
+                    )                
+                    user_object.save()
+            except Exception as e:
+                print(e)
+        if (self.synpro=='nbym'):
+            try:
+                for row in self.rows:
+                    try:
+                        property_id=row['property_ID']
+                    except Exception:
+                        property_id=0
+                    try:
+                        type_id=row['type_ID']
+                    except Exception:
+                        type_id=0    
+                    try:
+                        source_id=row['source_id']
+                    except Exception:
+                        source_id=0
+                    try:
+                        target_id=row['target_id']
+                    except Exception:
+                        target_id=0
+                    user_object = SynproEvidencePropertyTypeRel(
+                        Evidence_id=row['evidence_ID'],
+                        Property_id=property_id,
+                        source_id=source_id,
+                        target_id=target_id,
+                        Type_id=type_id,
+                        Article_id=row['Article_id'],
+                        priority=row['priority'],
+                        conflict_note=row['conflict_note'],
+                        unvetted=row['unvetted'],
+                        linking_quote=row['linking_quote'],
+                        interpretation_notes=row['interpretation_notes'],
+                        property_type_explanation=row['property_type_explanation'],
+                        pc_flag=row['pc_flag'],
+                        soma_pcl_flag=row['soma_pcl_flag'],
+                        ax_de_pcl_flag=row['ax_de_pcl_flag'],
+                        perisomatic_targeting_flag=row['perisomatic_targeting_flag'],
+                        supplemental_pmids=row['supplemental_pmids']
+                    )                
+                    user_object.save()
+            except Exception as e:
+                print(e)
 
     # ingests notes.csv and populates Type(updates notes field)
     def notes_to_type(self):
@@ -972,10 +1072,39 @@ class Map:
                 short_name = row['short_name']
                 if len(short_name) == 0:
                     short_name = None
+                CARLsim_name = row['CARLsim_name']
+                if len(CARLsim_name) == 0:
+                    CARLsim_name = None
+                supertype = row['supertype']
+                if len(supertype) == 0:
+                    supertype = None
+                type_subtype = row['type_subtype']
+                if len(type_subtype) == 0:
+                    type_subtype = None   
                 if dev == 'true':  # overide for dev site
                     position = position_HC_standard
                     short_name = intermediate_name
                 excit_inhib = row['excit_inhib']
+                if len(excit_inhib) == 0:
+                    excit_inhib = None          
+#                ranks = int(row['Ranks'])
+#                if len(ranks) == 0:
+#                    ranks = None
+                try:
+                    ranks = int(row['Ranks'])
+                except ValueError:
+                    ranks = None
+                try:
+                    v2p0 = int(row['v2.0'])
+                except ValueError:
+                    v2p0 = 0
+                mec_lec = row['pre_subregion_modifier']
+                if len(mec_lec) == 0:
+                    mec_lec = None          
+                try:
+                    interneuron_specific = int(row['interneuron_specific_flag'])
+                except ValueError:
+                    interneuron_specific = 0
                 notes = None
                 try:
                     row_object = Type.objects.get(id=id)
@@ -988,15 +1117,22 @@ class Map:
                         subregion=subregion,
                         name=full_name,
                         nickname=short_name,
+                        carlsim_name=CARLsim_name,
                         excit_inhib=excit_inhib,
+                        supertype=supertype,
+                        type_subtype=type_subtype,
                         status=status,
+                        ranks=ranks,
+                        v2p0=v2p0,
+                        mec_lec=mec_lec,
+                        interneuron_specific=interneuron_specific,
                         notes=notes
                     )
                     row_object.save()
             # end if status == 'active':
         # end for row in self.rows:
-
     # end def type_to_type(self):
+
     def izhmodels_to_izhmodels(self):
         try:
             for row in self.rows:
@@ -1107,9 +1243,9 @@ class Map:
                     filtered_total_length=row['Filtered_Total_length'],
                     percent_of_neurite_tree=row['%_of_neurite_tree'],
                     morphology_pattern=row['Morphology pattern'],
-                    mean_path_length=row['Mean_path_length'],
-                    entry_point=row['Entry point'],
-                    average=row['Average'],
+                    max_path_length=row['Max_path_length'],
+                    min_path_length=row['Min_path_length'],
+                    avg_path_length=row['Avg_path_length'],
                     convexhull = row['Convex Hull'],
                     reference_ID=row['Reference_ID'],
                     location_in_reference=row['Location in reference'],
@@ -1148,10 +1284,10 @@ class Map:
                     age=row['Age'],
                     slice=row['Slice'],
                     recording=row['Recording'],
-                    labeled	=row['Labeled'],
-                    markers	=row['Markers'],
+                    labeled =row['Labeled'],
+                    markers =row['Markers'],
                     input =row['Input'],
-                    output	 =row['Output'],
+                    output   =row['Output'],
                     sections   =row['Sections'])
                 user_object.save()
         except Exception as e:
@@ -1176,8 +1312,8 @@ class Map:
                     potential_synapses=row['Potential synapses'],
                     connection=row['Connection?'],
                     ES=row['ES'],
-                    ES_PMID	=row['ES PMID'],
-                    refIDs	                                   =row['RefIDs'],
+                    ES_PMID =row['ES PMID'],
+                    refIDs                                     =row['RefIDs'],
                     notes                                      =row['Notes'],
                 )
                 user_object.save()
@@ -1264,7 +1400,8 @@ class Map:
                     neur_quant_type_name=row['neur_quant_type_name'],
                     type_nickname=row['type_nickname'],
                     type_id=row['type_id'],
-                    subregion=row['subregion']
+                    subregion=row['subregion'],
+                    type_name_new=row['type_name_new']
                 )
                 user_object.save()
         except Exception as e:
@@ -1286,6 +1423,506 @@ class Map:
                     neurite_id=row['Neurite_ID'],
                     rar_file=row['Name of file containing figure'],
                     reference_id=row['Reference_ID']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_cp(self):
+        try:
+            for row in self.rows:
+                user_object = SynproCP(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    subregion=row['subregion'],
+                    parcel=row['parcel'],   
+                    CP_mean=row['CP_mean'],
+                    CP_std=row['CP_std']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_cp_total(self):
+        try:
+            for row in self.rows:
+                user_object = SynproCPTotal(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    CP_mean_total=row['CP_mean_total'],
+                    CP_stdev_total=row['CP_stdev_total'],   
+                    parcel_count=row['parcel_count']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_noc(self):
+        try:
+            for row in self.rows:
+                user_object = SynproNOC(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    subregion=row['subregion'],
+                    parcel=row['parcel'],   
+                    NC_mean=row['NC_mean'],
+                    NC_std=row['NC_std']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_noc_total(self):
+        try:
+            for row in self.rows:
+                user_object = SynproNOCTotal(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    NC_mean_total=row['NC_mean_total'],
+                    NC_stdev_total=row['NC_stdev_total'],   
+                    parcel_count=row['parcel_count']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_nops(self):
+        try:
+            for row in self.rows:
+                user_object = SynproNoPS(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    subregion=row['subregion'],
+                    parcel=row['parcel'],   
+                    NPS_mean=row['NPS_mean'],
+                    NPS_std=row['NPS_std']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_nps_total(self):
+        try:
+            for row in self.rows:
+                user_object = SynproNPSTotal(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    NPS_mean_total=row['NPS_mean_total'],
+                    NPS_stdev_total=row['NPS_stdev_total'],   
+                    parcel_count=row['parcel_count']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_parcel_volumes(self):
+        try:
+            for row in self.rows:
+                user_object = SynproParcelVolumes(
+                    subregion=row['subregion'],
+                    parcel=row['parcel'],
+                    volume=row['volume']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_sub_layers(self):
+        try:
+            for row in self.rows:
+                user_object = SynproSubLayers(
+                    neuron_id=row['neuron_id'],
+                    sub_layer=row['sub_layer']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def synpro_volumes_selected(self):
+        try:
+            for row in self.rows:
+                user_object = SynproVolumesSelected(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],
+                    subregion=row['subregion'],
+                    parcel=row['parcel'],
+                    volume_1=row['volume_1'],
+                    volume_2=row['volume_2'],
+                    selected_volume=row['selected_volume']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+    def phases(self):
+        try:
+            for row in self.rows:
+                user_object = phases(
+                    referenceID=row['Reference ID'],
+                    cellID=row['Unique ID'],
+                    cellType=row['Hippocampome Type'],
+                    supertypeID=row['Supertype ID'],
+                    supertype=row['Hippocampome Supertype'],
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal_or_Book=row['Journal/Book'],
+                    year=row['Year'],
+                    PMID_or_ISBN=row['PMID_or_ISBN'],
+                    pmid_isbn_page=row['pmid_isbn_page'],
+                    theta=row['Phase-CA1 (peak 0 deg)'],
+                    thetaError=row['Theta Error'],
+                    thetaErrorType=row['Theta Error Type'],
+                    thetaN=row['Theta N'],
+                    MVL=row['MVL'],
+                    MVL_error=row['MVL Error'],
+                    MVL_error_type=row['MVL Error Type'],
+                    MVL_N=row['MVL N'],
+                    gamma=row['Gamma Phase'],
+                    gammaError=row['Gamma Error'],
+                    gammaErrorType=row['Gamma Error Type'],
+                    gammaN=row['Gamma N'],
+                    epsilon=row['Epsilon Phase'],
+                    epsilonError=row['Epsilon Error'],
+                    epsilonErrorType=row['Epsilon Error Type'],
+                    epsilonN=row['Epsilon N'],
+                    ripple=row['Ripple Phase'],
+                    rippleError=row['Ripple Error'],
+                    rippleErrorType=row['Ripple Error Type'],
+                    rippleN=row['Ripple N'],
+                    SWR_ratio=row['SWR Ratio'],
+                    SWR_ratioError=row['SWR Ratio Error'],
+                    SWR_ratioErrorType=row['SWR Ratio Error Type'],
+                    SWR_ratioN=row['SWR Ratio N'],
+                    run_stop_ratio=row['Run/Stop Ratio'],
+                    DS_ratio=row['DS Ratio'],
+                    DS_ratioError=row['DS Ratio Error'],
+                    DS_ratioErrorType=row['DS Ratio Error Type'],
+                    DS_ratioN=row['DS Ratio N'],
+                    firingRate=row['Firing Rate'],
+                    firingRateError=row['Firing Rate Error'],
+                    firingRateErrorType=row['Firing Rate Error Type'],
+                    firingRateN=row['Firing Rate N'],
+                    firingRateRank=row['Firing Rate Rank'],
+                    firingRateNonBaseline=row['Firing Rate (non-baseline)'],
+                    firingRateErrorNonBaseline=row['Firing Rate Error (non-baseline)'],
+                    firingRateErrorTypeNonBaseline=row['Firing Rate Error Type (non-baseline)'],
+                    firingRateN_NonBaseline=row['Firing Rate N (non-baseline)'],
+                    firingRateRankNonBaseline=row['Firing Rate Rank (non-baseline)'],
+                    Vrest=row['Vrest (mV)'],
+                    VrestError=row['Vrest Error (mV)'],
+                    VrestErrorType=row['Vrest Error Type'],
+                    VrestN=row['Vrest N'],
+                    tau=row['Tau (ms)'],
+                    tauError=row['Tau Error (ms)'],
+                    tauErrorType=row['Tau Error Type'],
+                    tauN=row['Tau N'],
+                    APthresh=row['APthresh (mV)'],
+                    APthreshError=row['APthresh Error (mV)'],
+                    APthreshErrorType=row['APthresh Error Type'],
+                    APthreshN=row['APthresh N'],
+                    fAHP=row['fAHP (mV)'],
+                    fAHP_Error=row['fAHP Error (mV)'],
+                    fAHP_ErrorType=row['fAHP Error Type'],
+                    fAHP_N=row['fAHP N'],
+                    APpeak_trough=row['APpeak-trough (ms)'],
+                    APpeak_troughError=row['APpeak-trough Error (ms)'],
+                    APpeak_troughErrorType=row['APpeak-trough Error Type'],
+                    APpeak_troughN=row['APpeak-trough N'],
+                    LFP_site=row['LFP site'],
+                    recordingAssignment=row['Recording assignments'],
+                    recordingMethod=row['Recording_method'],
+                    species=row['Species'],
+                    strain=row['Strain'],
+                    gender=row['Gender'],
+                    age=row['Age'],
+                    ageType=row['Age_type'],
+                    behavioralStatus=row['Behavioral status'],
+                    dataMiningMethod=row['Data Mining Method'],
+                    metadataRank=row['Metadata rank'])
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+    def phases_fragment(self):
+        try:
+            for row in self.rows:
+                user_object = phases_fragment(
+                    referenceID=row['Reference ID'],
+                    # referenceID=row['reference_id'],
+                    cellID=row['Unique ID'],
+                    location_in_reference=row['Location in reference'],
+                    FTQ_ID=row['FTQ ID'],
+                    material_used=row['Material Used'],
+                    phase_parameter=row['Phase parameter'],
+                    phase_parameter_ID=row['Phase parameter ID'],
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal=row['Journal'],
+                    year=row['Year'],
+                    PMID=row['PMID'],
+                    pmid_isbn_page=row['pmid_isbn_page'])
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+
+    def attachment_phases(self):
+        try:
+            for row in self.rows:
+                user_object = attachment_phases(
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal_or_Book=row['Journal/Book'],
+                    year=row['Year'],
+                    PMID_or_ISBN=row['PMID/ISBN'],
+                    cell_identifier=row['Unique ID'],
+                    phase_parameter=row['Phase parameter'],
+                    phase_parameter_ID=row['Phase parameter ID'],
+                    name_of_file_containing_figure=row['Name of file containing figure'],
+                    FTQ_ID=row['FTQ ID'],
+                    figure_or_table=row['Figure/Table'],
+                    reference_ID=row['Reference ID']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def phases_evidence_type_rel(self):
+        try:
+            for row in self.rows:
+                user_object = PhasesEvidenceTypeRel(
+                    evidence_ID=row['evidence_ID'],
+                    neurite_ID=row['neurite_ID'],
+                    type_ID=row['type_ID'],
+                    original_id=row['original_id'],
+                    fragment_id=row['fragment_id'],
+                    Article_id=row['Article_id'],
+                    priority=row['priority'],
+                    conflict_note=row['conflict_note'],
+                    unvetted=row['unvetted'],
+                    linking_quote=row['linking_quote'],
+                    interpretation_notes=row['interpretation_notes'],
+                    property_type_explanation=row['property_type_explanation'],
+                    pc_flag=row['pc_flag'],
+                    soma_pcl_flag=row['soma_pcl_flag'],
+                    ax_de_pcl_flag=row['ax_de_pcl_flag'],
+                    perisomatic_targeting_flag=row['perisomatic_targeting_flag'],
+                    supplemental_pmids=row['supplemental_pmids']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def phases_evidence_fragment_rel(self):
+        try:
+            for row in self.rows:
+                user_object = PhasesEvidenceFragmentRel(
+                    Evidence_id=row['Evidence_id'],
+                    Fragment_id=row['Fragment_id']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def counts(self):
+        try:
+            for row in self.rows:
+                user_object = counts(
+                    neuron_type=row['Neuron Type'],
+                    unique_ID=row['Unique ID'],
+                    counts=row['Count'],
+                    lower_bound=row['Lower Bound'],
+                    upper_bound=row['Upper Bound']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def counts_fragment(self):
+        try:
+            for row in self.rows:
+                user_object = counts_fragment(
+                    referenceID=row['ReferenceID'],
+                    cellID=row['CellID'],
+                    variable=row['Variable'],
+                    cell_type=row['CellType'],
+                    material_used=row['Material Used'],
+                    location_in_reference=row['Location in reference'],
+                    measurement_equation=row['Measurement Equation'],
+                    interpretation=row['Interpretation'],
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal=row['Journal/Book'],
+                    year=row['Year'],
+                    PMID=row['PMID/ISBN'],
+                    pmid_isbn_page=row['pmid_isbn_page'],
+                    species=row['Species'],
+                    strain=row['Strain'],
+                    sex=row['Sex'],
+                    age_weight=row['Age or Weight']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def counts_evidence_type_rel(self):
+        try:
+            for row in self.rows:
+                user_object = CountsEvidenceTypeRel(
+                    evidence_ID=row['evidence_ID'],
+                    neurite_ID=row['neurite_ID'],
+                    type_ID=row['type_ID'],
+                    original_id=row['original_id'],
+                    fragment_id=row['fragment_id'],
+                    Article_id=row['Article_id'],
+                    priority=row['priority'],
+                    conflict_note=row['conflict_note'],
+                    unvetted=row['unvetted'],
+                    linking_quote=row['linking_quote'],
+                    interpretation_notes=row['interpretation_notes'],
+                    property_type_explanation=row['property_type_explanation'],
+                    pc_flag=row['pc_flag'],
+                    soma_pcl_flag=row['soma_pcl_flag'],
+                    ax_de_pcl_flag=row['ax_de_pcl_flag'],
+                    perisomatic_targeting_flag=row['perisomatic_targeting_flag'],
+                    supplemental_pmids=row['supplemental_pmids']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def counts_evidence_fragment_rel(self):
+        try:
+            for row in self.rows:
+                user_object = CountsEvidenceFragmentRel(
+                    Evidence_id=row['Evidence_id'],
+                    Fragment_id=row['Fragment_id']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def attachment_counts(self):
+        try:
+            for row in self.rows:
+                user_object = attachment_counts(
+                    authors=row['Authors'],
+                    title=row['Title'],
+                    journal_or_Book=row['Journal/Book'],
+                    year=row['Year'],
+                    PMID_or_ISBN=row['PMID/ISBN'],
+                    cell_identifier=row['Cell Identifier'],
+                    neuron_type=row['Neuron Type'],
+                    variable=row['Variable'],
+                    name_of_file_containing_figure=row['Name of file containing figure'],
+                    reference_ID=row['Reference_ID']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def citations(self):
+        try:
+            for row in self.rows:
+                user_object = citations(
+                    citation_ID=row['citation_ID'],
+                    brief_citation=row['brief_citation'],
+                    full_citation=row['full_citation']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def Hippocampome_to_NMO(self):
+        try:
+            for row in self.rows:
+                user_object = Hippocampome_to_NMO(
+                    Hippocampome_ID=row['Hippocampome_ID'],
+                    reason_for_inclusion=row['reason_for_inclusion'],
+                    inclusion_flag=row['inclusion_flag'],
+                    inclusion_caveat=row['inclusion_caveat'],
+                    NMO_neuron_id=row['neuron_id'],
+                    NMO_neuron_name=row['neuron_name'],
+                    NMO_archive=row['archive'],
+                    NMO_age_classification=row['age_classification'],
+                    NMO_brain_region_1=row['brain_region_1'],
+                    NMO_brain_region_2=row['brain_region_2'],
+                    NMO_brain_region_3=row['brain_region_3'],
+                    NMO_brain_region_4=row['brain_region_4'],
+                    NMO_brain_region_5=row['brain_region_5'],
+                    NMO_brain_region_6=row['brain_region_6'],
+                    NMO_brain_region_7=row['brain_region_7'],
+                    match_flag=row['match_flag'],
+                    NMO_cell_type_1=row['cell_type_1'],
+                    NMO_cell_type_2=row['cell_type_2'],
+                    NMO_cell_type_3=row['cell_type_3'],
+                    NMO_cell_type_4=row['cell_type_4'],
+                    NMO_cell_type_5=row['cell_type_5'],
+                    NMO_cell_type_6=row['cell_type_6'],
+                    NMO_cell_type_7=row['cell_type_7'],
+                    NMO_cell_type_8=row['cell_type_8'],
+                    NMO_cell_type_9=row['cell_type_9'],
+                    NMO_cell_type_10=row['cell_type_10'],
+                    NMO_cell_type_11=row['cell_type_11'],
+                    NMO_cell_type_12=row['cell_type_12'],
+                    NMO_cell_type_13=row['cell_type_13'],
+                    NMO_cell_type_14=row['cell_type_14'],
+                    NMO_cell_type_15=row['cell_type_15'],
+                    NMO_cell_type_16=row['cell_type_16'],
+                    NMO_species=row['species'],
+                    NMO_strain=row['strain'],
+                    NMO_experiment_condition=row['experiment_condition'],
+                    NMO_protocol=row['protocol'],
+                    NMO_domain=row['domain'],
+                    NMO_physical_integrity=row['physical_Integrity']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def ModelDB_mapping(self):
+        try:
+            for row in self.rows:
+                user_object = ModelDB_mapping(
+                    Neuron_Type=row['Neuron_Type'],
+                    Unique_ID=row['Unique_ID'],
+                    Supertype_ID=row['Supertype_ID'],
+                    ModelDB_Accession=row['ModelDB_Accession'],
+                    PMID=row['PMID']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def SynproIBD(self):
+        try:
+            for row in self.rows:
+                user_object = SynproIBD(
+                    source_id=row['source_id'],
+                    source_name=row['source_name'],
+                    source_e_or_i=row['source_e_or_i'],
+                    target_id=row['target_id'],   
+                    target_name=row['target_name'],
+                    target_e_or_i=row['target_e_or_i'],
+                    type_entry=row['type_entry'],
+                    subregion=row['subregion'],   
+                    layer=row['layer'],
+                    ibd=row['ibd']
+                )
+                user_object.save()
+        except Exception as e:
+            print(e)
+
+    def SynproPairsOrder(self):
+        try:
+            for row in self.rows:
+                user_object = SynproPairsOrder(
+                    source_id=row['source_id'],
+                    target_id=row['target_id'],   
+                    subregion=row['subregion'],   
+                    parcel=row['parcel']
                 )
                 user_object.save()
         except Exception as e:
