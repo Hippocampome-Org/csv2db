@@ -42,9 +42,14 @@ class EnumTypeExcitInhib(EnumField, models.CharField):
         values = [('e', 'E'), ('i', 'I')]
         super(EnumTypeExcitInhib, self).__init__(*args, choices=values, **kwargs)
 
+class EnumTypeTypeSubtype(EnumField, models.CharField):
+    def __init__(self, *args, choices=[], **kwargs):
+        values = [('type', 'Type'), ('subtype', 'Subtype')]
+        super(EnumTypeTypeSubtype, self).__init__(*args, choices=values, **kwargs)
+
 class EnumTypeStatus(EnumField, models.CharField):
     def __init__(self, *args, choices=[], **kwargs):
-        values = [('active', 'Active'), ('frozen', 'Frozen')]
+        values = [('active', 'Active'), ('on-hold', 'On-hold')]
         super(EnumTypeStatus, self).__init__(*args, choices=values, **kwargs)
 
 class EnumTypeTypeConnectionStatus(EnumField, models.CharField):
@@ -231,7 +236,7 @@ class EvidencePropertyTypeRel(models.Model):
     soma_pcl_flag             = models.NullBooleanField(null=True)
     ax_de_pcl_flag            = models.IntegerField(unique=False,null=True)
     perisomatic_targeting_flag= models.IntegerField(unique=False,null=True)
-    supplemental_pmids        = models.CharField(max_length=256, null=True)
+    supplemental_pmids        = models.CharField(max_length=1024, null=True)
     class Meta:
         db_table = 'EvidencePropertyTypeRel'
 
@@ -560,17 +565,23 @@ class Term(models.Model):
         db_table = 'Term'
 
 class Type(models.Model):
-    id                = models.AutoField(primary_key=True)
-    position          = models.IntegerField(null=True)
-    dt                = models.DateTimeField(auto_now_add=True)
-    explanatory_notes = models.CharField(max_length=5000, null=True)
-    subregion         = models.CharField(max_length=8, null=True)
-    name              = models.CharField(max_length=255, null=True)
-    nickname          = models.CharField(max_length=64, null=True)
-    excit_inhib       = EnumTypeExcitInhib(max_length=1, null=True) # enum('e','i')
-    status            = EnumTypeStatus(max_length=6, null=True) # enum('active','frozen')
-    notes             = models.TextField(null=True)
-    supertype         = models.CharField(max_length=255, null=True)
+    id                   = models.AutoField(primary_key=True)
+    dt                   = models.DateTimeField(auto_now_add=True)
+    position             = models.IntegerField(null=True)
+    explanatory_notes    = models.CharField(max_length=5000, null=True)
+    subregion            = models.CharField(max_length=8, null=True)
+    name                 = models.CharField(max_length=255, null=True)
+    nickname             = models.CharField(max_length=64, null=True)
+    carlsim_name         = models.CharField(max_length=100, null=True)
+    excit_inhib          = EnumTypeExcitInhib(max_length=1, null=True) # enum('e','i')
+    supertype            = models.CharField(max_length=255, null=True)
+    type_subtype         = EnumTypeTypeSubtype(max_length=7, null=True) # enum('type','subtype')
+    status               = EnumTypeStatus(max_length=7, null=True) # enum('active','on-hold')
+    ranks                = models.IntegerField(null=True)
+    v2p0                 = models.IntegerField(null=True)
+    mec_lec              = models.CharField(max_length=1, null=True)
+    interneuron_specific = models.IntegerField(null=True)
+    notes                = models.TextField(null=True)
     class Meta:
         db_table = 'Type'
 
@@ -683,9 +694,9 @@ class neurite_quantified(models.Model):
     filtered_total_length                                   = models.CharField(max_length=400, null=True)
     percent_of_neurite_tree                                       = models.CharField(max_length=400, null=True)
     morphology_pattern                                      = models.CharField(max_length=400, null=True)
-    mean_path_length                                      = models.CharField(max_length=400, null=True)
-    entry_point                                           = models.CharField(max_length=400, null=True)
-    average                                               = models.CharField(max_length=400, null=True)
+    max_path_length                                      = models.CharField(max_length=400, null=True)
+    min_path_length                                           = models.CharField(max_length=400, null=True)
+    avg_path_length                                               = models.CharField(max_length=400, null=True)
     convexhull                                              = models.CharField(max_length=400, null=True)
     reference_ID                                          = models.CharField(max_length=400, null=True)
     location_in_reference                   = models.CharField(max_length=400, null=True)
@@ -881,6 +892,7 @@ class SynproTypeTypeRel(models.Model):
     type_nickname             = models.TextField(max_length=1000, null=True)
     type_id = models.BigIntegerField(null=True)
     subregion             = models.TextField(max_length=1000, null=True)
+    type_name_new             = models.TextField(max_length=1000, null=True)
     class Meta:
         db_table = 'SynproTypeTypeRel'
 
@@ -900,3 +912,411 @@ class attachment_neurite_rar(models.Model):
 
     class Meta:
         db_table = 'attachment_neurite_rar'
+
+class SynproCP(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    parcel          = models.TextField(max_length=1000, null=True)
+    CP_mean          = FloatFloatField(null=True)
+    CP_std          = FloatFloatField(null=True)
+    class Meta:
+        db_table = 'SynproCP'
+
+class SynproCPTotal(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    CP_mean_total          = models.TextField(max_length=1000, null=True)
+    CP_stdev_total          = models.TextField(max_length=1000, null=True)
+    parcel_count          = models.BigIntegerField(null=True)
+    class Meta:
+        db_table = 'SynproCPTotal'
+
+class SynproNOC(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    parcel          = models.TextField(max_length=1000, null=True)
+    NC_mean          = FloatFloatField(null=True)
+    NC_std          = FloatFloatField(null=True)
+    class Meta:
+        db_table = 'SynproNOC'
+
+class SynproNOCTotal(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    NC_mean_total          = models.TextField(max_length=1000, null=True)
+    NC_stdev_total          = models.TextField(max_length=1000, null=True)
+    parcel_count          = models.BigIntegerField(null=True)
+    class Meta:
+        db_table = 'SynproNOCTotal'
+
+class SynproNoPS(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    parcel          = models.TextField(max_length=1000, null=True)
+    NPS_mean          = FloatFloatField(null=True)
+    NPS_std          = FloatFloatField(null=True)
+    class Meta:
+        db_table = 'SynproNoPS'
+
+class SynproNPSTotal(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    NPS_mean_total          = models.TextField(max_length=1000, null=True)
+    NPS_stdev_total          = models.TextField(max_length=1000, null=True)
+    parcel_count          = models.BigIntegerField(null=True)
+    class Meta:
+        db_table = 'SynproNPSTotal'
+
+class SynproParcelVolumes(models.Model):
+    id          = models.AutoField(primary_key=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    parcel          = models.TextField(max_length=1000, null=True)
+    volume          = FloatFloatField(null=True)
+    class Meta:
+        db_table = 'SynproParcelVolumes'
+
+class SynproSubLayers(models.Model):
+    id          = models.AutoField(primary_key=True)
+    neuron_id          = models.BigIntegerField(null=True)
+    sub_layer          = models.TextField(max_length=1000, null=True)
+    class Meta:
+        db_table = 'SynproSubLayers'
+
+class SynproVolumesSelected(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    parcel          = models.TextField(max_length=1000, null=True)
+    volume_1          = models.TextField(max_length=1000, null=True)
+    volume_2          = models.TextField(max_length=1000, null=True)
+    selected_volume          = models.TextField(max_length=1000, null=True)
+    class Meta:
+        db_table = 'SynproVolumesSelected'
+
+class phases(models.Model):
+    id                                                     = models.AutoField(primary_key=True)
+    referenceID                                             = models.CharField(max_length=400, null=True)
+    cellID                                             = models.CharField(max_length=400, null=True)
+    cellType                                                = models.CharField(max_length=400, null=True)
+    supertypeID                              = models.CharField(max_length=400, null=True)
+    supertype                                           = models.CharField(max_length=400, null=True)
+    authors                               = models.CharField(max_length=400, null=True)
+    title                                 = models.CharField(max_length=400, null=True)
+    journal_or_Book                       = models.CharField(max_length=400, null=True)
+    year                                  = models.CharField(max_length=400, null=True)
+    PMID_or_ISBN                          = models.CharField(max_length=400, null=True)
+    pmid_isbn_page                                 = models.CharField(max_length=400, null=True)
+    theta                          = models.CharField(max_length=400, null=True)
+    thetaError                                              = models.CharField(max_length=400, null=True)
+    thetaErrorType                                         = models.CharField(max_length=400, null=True)
+    thetaN                                              = models.CharField(max_length=4, null=True)
+    MVL                                            = models.CharField(max_length=400, null=True)
+    MVL_error                                            = models.CharField(max_length=400, null=True)
+    MVL_error_type                                        = models.CharField(max_length=400, null=True)
+    MVL_N                                              = models.CharField(max_length=4, null=True)
+    gamma                                   = models.CharField(max_length=400, null=True)
+    gammaError                                       = models.CharField(max_length=400, null=True)
+    gammaErrorType                                       = models.CharField(max_length=400, null=True)
+    gammaN                                   = models.CharField(max_length=4, null=True)
+    epsilon                                      = models.CharField(max_length=400, null=True)
+    epsilonError                                      = models.CharField(max_length=400, null=True)
+    epsilonErrorType                                      = models.CharField(max_length=400, null=True)
+    epsilonN                                   = models.CharField(max_length=4, null=True)
+    ripple                                           = models.CharField(max_length=400, null=True)
+    rippleError                                               = models.CharField(max_length=400, null=True)
+    rippleErrorType                                    = models.CharField(max_length=400, null=True)
+    rippleN                                   = models.CharField(max_length=4, null=True)
+    SWR_ratio                                              = models.CharField(max_length=400, null=True)
+    SWR_ratioError                                          = models.CharField(max_length=400, null=True)
+    SWR_ratioErrorType                               = models.CharField(max_length=400, null=True)
+    SWR_ratioN                                              = models.CharField(max_length=4, null=True)
+    run_stop_ratio                   = models.CharField(max_length=400, null=True)
+    DS_ratio                                              = models.CharField(max_length=400, null=True)
+    DS_ratioError                                          = models.CharField(max_length=400, null=True)
+    DS_ratioErrorType                               = models.CharField(max_length=400, null=True)
+    DS_ratioN                                              = models.CharField(max_length=4, null=True)
+    firingRate                                           = models.CharField(max_length=400, null=True)
+    firingRateError                                  = models.CharField(max_length=400, null=True)
+    firingRateErrorType                                    = models.CharField(max_length=400, null=True)
+    firingRateN                                              = models.CharField(max_length=4, null=True)
+    firingRateRank                                  = models.CharField(max_length=400, null=True)
+    firingRateNonBaseline                       = models.CharField(max_length=40, null=True)
+    firingRateErrorNonBaseline                   = models.CharField(max_length=40, null=True)
+    firingRateErrorTypeNonBaseline              = models.CharField(max_length=3, null=True)
+    firingRateN_NonBaseline                      = models.CharField(max_length=4, null=True)
+    firingRateRankNonBaseline                   = models.CharField(max_length=3, null=True)
+    Vrest                                           = models.CharField(max_length=50, null=True)
+    VrestError                                  = models.CharField(max_length=50, null=True)
+    VrestErrorType                                    = models.CharField(max_length=50, null=True)
+    VrestN                                              = models.CharField(max_length=4, null=True)
+    tau                                           = models.CharField(max_length=50, null=True)
+    tauError                                  = models.CharField(max_length=50, null=True)
+    tauErrorType                                    = models.CharField(max_length=50, null=True)
+    tauN                                              = models.CharField(max_length=4, null=True)
+    APthresh                                           = models.CharField(max_length=50, null=True)
+    APthreshError                                  = models.CharField(max_length=50, null=True)
+    APthreshErrorType                                    = models.CharField(max_length=50, null=True)
+    APthreshN                                              = models.CharField(max_length=4, null=True)
+    fAHP                                           = models.CharField(max_length=50, null=True)
+    fAHP_Error                                  = models.CharField(max_length=50, null=True)
+    fAHP_ErrorType                                    = models.CharField(max_length=50, null=True)
+    fAHP_N                                              = models.CharField(max_length=4, null=True)
+    APpeak_trough                                           = models.CharField(max_length=50, null=True)
+    APpeak_troughError                                  = models.CharField(max_length=50, null=True)
+    APpeak_troughErrorType                                    = models.CharField(max_length=50, null=True)
+    APpeak_troughN                                              = models.CharField(max_length=4, null=True)
+    LFP_site                       = models.CharField(max_length=400, null=True)
+    recordingAssignment             = models.CharField(max_length=400, null=True)
+    recordingMethod             = models.CharField(max_length=400, null=True)
+    species                                               = models.CharField(max_length=400, null=True)
+    strain                                              = models.CharField(max_length=400, null=True)
+    gender                                          = models.CharField(max_length=400, null=True)
+    age                   = models.CharField(max_length=400, null=True)
+    ageType                   = models.CharField(max_length=400, null=True)
+    behavioralStatus                       = models.CharField(max_length=400, null=True)
+    dataMiningMethod             = models.CharField(max_length=400, null=True)
+    metadataRank             = models.CharField(max_length=400, null=True)
+    class Meta:
+         db_table = 'phases'
+
+class phases_fragment(models.Model):
+    id                  = models.AutoField(primary_key=True)
+    referenceID                       = models.CharField(max_length=400, null=True)
+    cellID                            = models.CharField(max_length=400, null=True)
+    location_in_reference             = models.CharField(max_length=400, null=True)
+    FTQ_ID                            = models.CharField(max_length=400, null=True)
+    material_used                     = models.CharField(max_length=2000, null=True)
+    phase_parameter                   = models.CharField(max_length=400, null=True)
+    phase_parameter_ID                = models.CharField(max_length=400, null=True)
+    authors                           = models.CharField(max_length=400, null=True)
+    title                             = models.CharField(max_length=400, null=True)
+    journal                           = models.CharField(max_length=400, null=True)
+    year                              = models.CharField(max_length=400, null=True)
+    PMID                              = models.CharField(max_length=400, null=True)
+    pmid_isbn_page                    = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'phases_fragment'
+
+class attachment_phases(models.Model):
+    id                                    = models.AutoField(primary_key=True)
+    authors                               = models.CharField(max_length=400, null=True)
+    title                                 = models.CharField(max_length=400, null=True)
+    journal_or_Book                       = models.CharField(max_length=400, null=True)
+    year                                  = models.CharField(max_length=400, null=True)
+    PMID_or_ISBN                          = models.CharField(max_length=400, null=True)
+    cell_identifier                       = models.CharField(max_length=400, null=True)
+    phase_parameter                       = models.CharField(max_length=400, null=True)
+    phase_parameter_ID                    = models.CharField(max_length=400, null=True)
+    name_of_file_containing_figure        = models.CharField(max_length=400, null=True)
+    FTQ_ID                                = models.CharField(max_length=400, null=True)
+    figure_or_table                       = models.CharField(max_length=400, null=True)
+    reference_ID                          = models.CharField(max_length=400, null=True)
+    class Meta:
+        db_table = 'attachment_phases'
+
+class PhasesEvidenceTypeRel(models.Model):
+    id                        = models.AutoField(primary_key=True)
+    dt                        = models.DateTimeField(auto_now_add=True)
+    evidence_ID               = models.TextField(null=True)
+    neurite_ID                = models.TextField(null=True)
+    type_ID                   = models.IntegerField(null=True)
+    original_id               = models.TextField(null=True)
+    fragment_id               = models.IntegerField(null=True)
+    Article_id                = models.TextField(null=True)
+    priority                  = models.TextField(null=True)
+    conflict_note             = models.TextField(null=True)
+    unvetted                  = models.TextField(null=True)
+    linking_quote             = models.TextField(null=True)
+    interpretation_notes              = models.TextField(null=True)
+    property_type_explanation         = models.TextField(null=True)
+    pc_flag                   = models.TextField(null=True)
+    soma_pcl_flag             = models.TextField(null=True)
+    ax_de_pcl_flag            = models.TextField(null=True)
+    perisomatic_targeting_flag         = models.TextField(null=True)
+    supplemental_pmids        = models.TextField(null=True)
+    class Meta:
+        db_table = 'phases_evidence_type_rel'
+
+class PhasesEvidenceFragmentRel(models.Model):
+    id                        = models.AutoField(primary_key=True)
+    dt                        = models.DateTimeField(auto_now_add=True)
+    Evidence_id               = models.IntegerField(null=True)
+    Fragment_id               = models.IntegerField(null=True)
+    class Meta:
+        db_table = 'phases_evidence_fragment_rel'
+
+class counts(models.Model):
+    id                                    = models.AutoField(primary_key=True)
+    neuron_type                               = models.CharField(max_length=400, null=True)
+    unique_ID                                 = models.CharField(max_length=4, null=True)
+    counts                       = models.CharField(max_length=10, null=True)
+    lower_bound                                  = models.CharField(max_length=10, null=True)
+    upper_bound                          = models.CharField(max_length=10, null=True)
+    class Meta:
+        db_table = 'counts'
+
+class counts_fragment(models.Model):
+    id                  = models.AutoField(primary_key=True)
+    referenceID                       = models.CharField(max_length=10, null=True)
+    cellID                            = models.CharField(max_length=4, null=True)
+    variable                          = models.CharField(max_length=4, null=True)
+    cell_type                         = models.CharField(max_length=400, null=True)
+    material_used                     = models.CharField(max_length=2000, null=True)
+    location_in_reference             = models.CharField(max_length=400, null=True)
+    measurement_equation              = models.CharField(max_length=400, null=True)
+    interpretation                    = models.CharField(max_length=400, null=True)
+    authors                           = models.CharField(max_length=400, null=True)
+    title                             = models.CharField(max_length=400, null=True)
+    journal                           = models.CharField(max_length=400, null=True)
+    year                              = models.CharField(max_length=4, null=True)
+    PMID                              = models.CharField(max_length=20, null=True)
+    pmid_isbn_page                    = models.CharField(max_length=10, null=True)
+    species                           = models.CharField(max_length=100, null=True)
+    strain                            = models.CharField(max_length=100, null=True)
+    sex                               = models.CharField(max_length=100, null=True)
+    age_weight                        = models.CharField(max_length=100, null=True)
+    class Meta:
+        db_table = 'counts_fragment'
+
+class CountsEvidenceTypeRel(models.Model):
+    id                        = models.AutoField(primary_key=True)
+    dt                        = models.DateTimeField(auto_now_add=True)
+    evidence_ID               = models.TextField(null=True)
+    neurite_ID                = models.TextField(null=True)
+    type_ID                   = models.TextField(null=True)
+    original_id               = models.TextField(null=True)
+    fragment_id               = models.IntegerField(null=True)
+    Article_id                = models.TextField(null=True)
+    priority                  = models.TextField(null=True)
+    conflict_note             = models.TextField(null=True)
+    unvetted                  = models.TextField(null=True)
+    linking_quote             = models.TextField(null=True)
+    interpretation_notes              = models.TextField(null=True)
+    property_type_explanation         = models.TextField(null=True)
+    pc_flag                   = models.TextField(null=True)
+    soma_pcl_flag             = models.TextField(null=True)
+    ax_de_pcl_flag            = models.TextField(null=True)
+    perisomatic_targeting_flag         = models.TextField(null=True)
+    supplemental_pmids        = models.TextField(null=True)
+    class Meta:
+        db_table = 'counts_evidence_type_rel'
+
+class CountsEvidenceFragmentRel(models.Model):
+    id                        = models.AutoField(primary_key=True)
+    dt                        = models.DateTimeField(auto_now_add=True)
+    Evidence_id               = models.IntegerField(null=True)
+    Fragment_id               = models.IntegerField(null=True)
+    class Meta:
+        db_table = 'counts_evidence_fragment_rel'
+
+class attachment_counts(models.Model):
+    id                                    = models.AutoField(primary_key=True)
+    authors                               = models.CharField(max_length=400, null=True)
+    title                                 = models.CharField(max_length=400, null=True)
+    journal_or_Book                       = models.CharField(max_length=400, null=True)
+    year                                  = models.CharField(max_length=10, null=True)
+    PMID_or_ISBN                          = models.CharField(max_length=30, null=True)
+    cell_identifier                       = models.CharField(max_length=10, null=True)
+    neuron_type                           = models.CharField(max_length=100, null=True)
+    variable                              = models.CharField(max_length=10, null=True)
+    name_of_file_containing_figure        = models.CharField(max_length=400, null=True)
+    reference_ID                          = models.CharField(max_length=20, null=True)
+    class Meta:
+        db_table = 'attachment_counts'
+
+class citations(models.Model):
+    id                                    = models.AutoField(primary_key=True)
+    dt                                    = models.DateTimeField(auto_now_add=True)
+    citation_ID                           = models.CharField(max_length=4, null=True)
+    brief_citation                        = models.CharField(max_length=1024, null=True)
+    full_citation                         = models.CharField(max_length=1024, null=True)
+    class Meta:
+        db_table = 'citations'
+
+class Hippocampome_to_NMO(models.Model):
+    id                                  = models.AutoField(primary_key=True)
+    Hippocampome_ID                     = models.CharField(max_length=50, null=True)
+    reason_for_inclusion                = models.CharField(max_length=300, null=True)
+    inclusion_flag                      = models.IntegerField(null=True)
+    inclusion_caveat                    = models.CharField(max_length=255, null=True)
+    NMO_neuron_id                       = models.IntegerField(null=True)
+    NMO_neuron_name                     = models.CharField(max_length=100, null=True)
+    NMO_archive                         = models.CharField(max_length=50, null=True)
+    NMO_age_classification              = models.CharField(max_length=20, null=True)
+    NMO_brain_region_1                  = models.CharField(max_length=50, null=True)
+    NMO_brain_region_2                  = models.CharField(max_length=50, null=True)
+    NMO_brain_region_3                  = models.CharField(max_length=50, null=True)
+    NMO_brain_region_4                  = models.CharField(max_length=50, null=True)
+    NMO_brain_region_5                  = models.CharField(max_length=50, null=True)
+    NMO_brain_region_6                  = models.CharField(max_length=50, null=True)
+    NMO_brain_region_7                  = models.CharField(max_length=50, null=True)
+    match_flag                          = models.IntegerField(null=True)
+    NMO_cell_type_1                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_2                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_3                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_4                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_5                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_6                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_7                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_8                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_9                     = models.CharField(max_length=100, null=True)
+    NMO_cell_type_10                    = models.CharField(max_length=100, null=True)
+    NMO_cell_type_11                    = models.CharField(max_length=100, null=True)
+    NMO_cell_type_12                    = models.CharField(max_length=100, null=True)
+    NMO_cell_type_13                    = models.CharField(max_length=100, null=True)
+    NMO_cell_type_14                    = models.CharField(max_length=100, null=True)
+    NMO_cell_type_15                    = models.CharField(max_length=100, null=True)
+    NMO_cell_type_16                    = models.CharField(max_length=100, null=True)
+    NMO_species                         = models.CharField(max_length=20, null=True)
+    NMO_strain                          = models.CharField(max_length=100, null=True)
+    NMO_experiment_condition            = models.CharField(max_length=200, null=True)
+    NMO_protocol                        = models.CharField(max_length=15, null=True)
+    NMO_domain                          = models.CharField(max_length=40, null=True)
+    NMO_physical_integrity              = models.CharField(max_length=60, null=True)
+    class Meta:
+        db_table = 'Hippocampome_to_NMO'
+
+class ModelDB_mapping(models.Model):
+    id                                    = models.AutoField(primary_key=True)
+    dt                                    = models.DateTimeField(auto_now_add=True)
+    Neuron_Type                           = models.CharField(max_length=64, null=True)
+    Unique_ID                             = models.CharField(max_length=4, null=True)
+    Supertype_ID                          = models.CharField(max_length=7, null=True)
+    ModelDB_Accession                     = models.CharField(max_length=10, null=True)
+    PMID                                  = models.CharField(max_length=10, null=True)
+    class Meta:
+        db_table = 'ModelDB_mapping'
+
+class SynproIBD(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    source_name          = models.TextField(max_length=1000, null=True)
+    source_e_or_i          = models.TextField(max_length=1000, null=True)
+    target_id          = models.BigIntegerField(null=True)
+    target_name          = models.TextField(max_length=1000, null=True)
+    target_e_or_i          = models.TextField(max_length=1000, null=True)
+    type_entry          = models.TextField(max_length=1000, null=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    layer          = models.TextField(max_length=1000, null=True)
+    ibd          = FloatFloatField(null=True)
+    class Meta:
+        db_table = 'SynproIBD'
+
+class SynproPairsOrder(models.Model):
+    id          = models.AutoField(primary_key=True)
+    source_id          = models.BigIntegerField(null=True)
+    target_id          = models.BigIntegerField(null=True)
+    subregion          = models.TextField(max_length=1000, null=True)
+    parcel          = models.TextField(max_length=1000, null=True)
+    class Meta:
+        db_table = 'SynproPairsOrder'
